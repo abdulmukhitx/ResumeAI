@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load job_filters %}
 
 {% block title %}{{ job.title }} - Smart Resume Matcher{% endblock %}
 
@@ -72,13 +73,13 @@
                 <!-- Job Description -->
                 <div class="mb-4">
                     <h5>Job Description</h5>
-                    <div class="job-description">{{ job.description|linebreaks }}</div>
+                    <div class="job-description">{{ job.description|clean_html_description|linebreaks }}</div>
                 </div>
                 
                 <!-- Requirements -->
                 <div class="mb-4">
                     <h5>Requirements</h5>
-                    <div class="job-requirements">{{ job.requirements|linebreaks }}</div>
+                    <div class="job-requirements">{{ job.requirements|clean_html_description|linebreaks }}</div>
                 </div>
                 
                 <!-- Required Skills -->

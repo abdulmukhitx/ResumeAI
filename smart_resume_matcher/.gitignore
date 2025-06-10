@@ -1,8 +1,55 @@
+# Python
 venv/
+venv_pipx/
 *.pyc
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
 .env
 media/
 staticfiles/
-.DS_Store
+db.sqlite3
+
+# Logs and databases
 *.log
+*.sql
+*.sqlite3
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE/Editor folders
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environments
+.env
+.venv
+env/
+ENV/
+env.bak/
+venv.bak/

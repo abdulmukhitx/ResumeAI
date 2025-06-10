@@ -95,6 +95,29 @@ class Job(models.Model):
         elif self.salary_to:
             return f"до {self.salary_to:,} {self.salary_currency}"
         return "Зарплата не указана"
+        
+    def get_clean_description(self):
+        """
+        Returns a clean version of the job description with HTML tags removed
+        and properly formatted for display
+        """
+        import html
+        import re
+        
+        if not self.description:
+            return ""
+            
+        # Unescape HTML entities
+        value = html.unescape(self.description)
+        
+        # Remove HTML tags
+        value = re.sub(r'<[^>]*>', ' ', value)
+        
+        # Fix spaces and line breaks
+        value = re.sub(r' +', ' ', value)
+        value = re.sub(r'\n{3,}', '\n\n', value)
+        
+        return value.strip()
 
 class JobMatch(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_matches')

@@ -1,8 +1,11 @@
 from django.shortcuts import render
-from jobs.models import JobMatch
-from resumes.models import Resume
+from django.apps import apps
 from django.conf import settings
 import random
+
+# Dynamically load models to avoid circular imports
+JobMatch = apps.get_model('jobs', 'JobMatch')
+Resume = apps.get_model('resumes', 'Resume')
 
 # AI tips for career development
 CAREER_TIPS = [

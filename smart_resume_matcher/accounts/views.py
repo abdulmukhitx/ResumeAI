@@ -3,10 +3,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
+from django.apps import apps
 import os
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileEditForm
-from resumes.models import Resume
-from jobs.models import JobApplication
+
+# Dynamically load models to avoid circular imports
+Resume = apps.get_model('resumes', 'Resume')
+JobApplication = apps.get_model('jobs', 'JobApplication')
 
 def register_view(request):
     if request.method == 'POST':

@@ -1,12 +1,14 @@
+import os
 from decouple import config
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me')  # Note: Ensure to override the default SECRET_KEY and database credentials in production.
-DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = ['*'] if DEBUG else [config('ALLOWED_HOSTS', default='localhost')]  # Note: Configure ALLOWED_HOSTS properly in production to avoid security risks.
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me')  # Will be overridden by Render environment variable
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = ['*'] if DEBUG else ['.render.com', config('ALLOWED_HOSTS', default='localhost')]
 
 # Application definition
 DJANGO_APPS = [
@@ -37,6 +39,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -73,6 +76,11 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Use PostgreSQL on Render
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.parse(DATABASE_URL)
 
 # Redis and Celery
 REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
@@ -117,6 +125,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'

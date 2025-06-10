@@ -1,13 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
-from .models import Job, JobMatch, JobApplication, JobSearch
-from .services import HHApiClient
-from resumes.models import Resume
 from django.utils import timezone
-from django.http import JsonResponse
 from django.core.paginator import Paginator
+from django.apps import apps
+from .services import HHApiClient
+
+# Dynamically load models to avoid circular imports
+Resume = apps.get_model('resumes', 'Resume')
+JobMatch = apps.get_model('jobs', 'JobMatch')
+Job = apps.get_model('jobs', 'Job')
+JobApplication = apps.get_model('jobs', 'JobApplication')
+JobSearch = apps.get_model('jobs', 'JobSearch')
 
 @login_required
 def job_list_view(request):
@@ -87,9 +91,58 @@ def job_search_view(request):
                 'per_page': 20
             }
             
-            # Only add area parameter if location is provided - empty string causes API error
+            # Only add area parameter if location is provided
+            # HH.ru API expects numeric area IDs, not text names
             if location and location.strip():
-                search_params['area'] = location
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Processing location: {location}")
+                
+                # Try to identify common cities and map them to HH.ru area IDs
+                location_mapping = {
+                    'almaty': '160',
+                    'nur-sultan': '159',  # Now Astana
+                    'astana': '159',
+                    'shymkent': '202',
+                    'kazakhstan': '40',  # Country code
+                    'moscow': '1',
+                    'saint petersburg': '2',
+                    'russia': '113'  # Country code
+                }
+                
+                # Clean up location - remove commas and extra spaces
+                location_parts = [part.strip().lower() for part in location.split(',')]
+                location_lower = ' '.join(location_parts)
+                
+                # Try to match the location to a known city
+                area_id = None
+                for city, city_id in location_mapping.items():
+                    if city in location_lower:
+                        area_id = city_id
+                        logger.info(f"Matched location '{location}' to city '{city}' with ID {area_id}")
+                        break
+                
+                # If no match found but we have multiple parts, try each part separately
+                if area_id is None and len(location_parts) > 1:
+                    for part in location_parts:
+                        for city, city_id in location_mapping.items():
+                            if city in part:
+                                area_id = city_id
+                                logger.info(f"Matched location part '{part}' to city '{city}' with ID {area_id}")
+                                break
+                        if area_id:
+                            break
+                
+                # If still no match but it's a numeric value, use it directly
+                if area_id is None and location.strip().isdigit():
+                    area_id = location.strip()
+                    logger.info(f"Using location as numeric ID: {area_id}")
+                
+                # If we found a valid area ID, add it to the parameters
+                if area_id:
+                    search_params['area'] = area_id
+                else:
+                    logger.warning(f"Could not map location '{location}' to a valid area ID. Using default.")
             
             search_results = client.search_vacancies(search_params)
             

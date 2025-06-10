@@ -1,13 +1,18 @@
 from celery import shared_task
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.apps import apps
 from datetime import timedelta
-from .models import JobSearch, Job, JobMatch
 from .services import HHApiClient, JobMatcher
 from notifications.tasks import send_job_matches_email
 import logging
 
 User = get_user_model()
+# Dynamically load models to avoid circular imports
+Resume = apps.get_model('resumes', 'Resume')
+JobSearch = apps.get_model('jobs', 'JobSearch')
+Job = apps.get_model('jobs', 'Job')
+JobMatch = apps.get_model('jobs', 'JobMatch')
 logger = logging.getLogger(__name__)
 
 @shared_task(bind=True, max_retries=3)
@@ -15,7 +20,7 @@ def search_and_match_jobs_task(self, user_id, resume_id):
     """Search for jobs and create matches for a specific user"""
     try:
         user = User.objects.get(id=user_id)
-        resume = user.resumes.get(id=resume_id, status='completed')
+        resume = Resume.objects.get(id=resume_id, user=user, status='completed')
         
         # Create job search record
         job_search = JobSearch.objects.create(
