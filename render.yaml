@@ -1,0 +1,77 @@
+services:
+  - type: web
+    name: smart-resume-matcher
+    env: python
+    buildCommand: ./build.sh
+    startCommand: cd smart_resume_matcher && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: ".render.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-resume-matcher-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: smart-resume-redis
+          type: redis
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+  - type: worker
+    name: smart-resume-celery-worker
+    env: python
+    buildCommand: ./build.sh
+    startCommand: cd smart_resume_matcher && celery -A config worker --loglevel=info
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-resume-matcher-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: smart-resume-redis
+          type: redis
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.11.0
+  
+  - type: worker
+    name: smart-resume-celery-beat
+    env: python
+    buildCommand: ./build.sh
+    startCommand: cd smart_resume_matcher && celery -A config beat --loglevel=info
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-resume-matcher-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: smart-resume-redis
+          type: redis
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+  - type: redis
+    name: smart-resume-redis
+    plan: free
+    maxmemoryPolicy: volatile-lru
+
+databases:
+  - name: smart-resume-matcher-db
+    plan: free
