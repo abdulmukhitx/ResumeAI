@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - Smart Resume Matcher{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">User Profile</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <!-- Use the safest approach - always provide a default in case of errors -->
+                    <img src="{% firstof user.get_profile_picture_url static 'images/default-profile.png' %}" 
+                         alt="{% if user.get_profile_picture_url %}Profile Picture{% else %}Default Profile Picture{% endif %}" 
+                         class="img-fluid rounded-circle" 
+                         style="max-width: 150px;"
+                         onerror="this.src='{% static 'images/default-profile.png' %}'; this.onerror='';">
+                </div>
+                <h4>{{ user.get_full_name }}</h4>
+                <p class="text-muted">{{ user.email }}</p>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Resume Information</h5>
+            </div>
+            <div class="card-body">
+                {% if user_resume %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Current Resume</h5>
+                        <div>
+                            <a href="{{ user_resume.file.url }}" class="btn btn-sm btn-outline-secondary me-2" target="_blank">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <a href="{% url 'resume_upload' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-upload"></i> Update
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6>Extracted Skills</h6>
+                                <div>
+                                    {% if user_resume.extracted_skills %}
+                                        {% for skill in user_resume.extracted_skills %}
+                                            <span class="badge bg-info text-dark me-1 mb-1">{{ skill }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">No skills extracted</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Experience Level</h6>
+                                <p>{{ user_resume.experience_level|title|default:"Not specified" }}</p>
+                            </div>
+                            
+                            <div>
+                                <h6>AI Summary</h6>
+                                <p>{{ user_resume.analysis_summary|default:"No summary available" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="mb-3">You haven't uploaded a resume yet.</p>
+                        <a href="{% url 'resume_upload' %}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i> Upload Resume
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Job Applications</h5>
+            </div>
+            <div class="card-body">
+                {% if job_applications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Company</th>
+                                    <th>Match Score</th>
+                                    <th>Date Applied</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in job_applications %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'job_detail' application.job.id %}">
+                                                {{ application.job.title }}
+                                            </a>
+                                        </td>
+                                        <td>{{ application.job.company_name }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar" role="progressbar" 
+                                                    style="width: {{ application.match_score }}%;" 
+                                                    aria-valuenow="{{ application.match_score }}" 
+                                                    aria-valuemin="0" 
+                                                    aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small>{{ application.match_score }}%</small>
+                                        </td>
+                                        <td>{{ application.applied_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ application.get_status_color }}">
+                                                {{ application.get_status_display }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>You haven't applied to any jobs yet.</p>
+                        <a href="{% url 'job_search' %}" class="btn btn-primary">Browse Jobs</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

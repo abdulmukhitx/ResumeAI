@@ -1,10 +1,6 @@
 import requests
-import json
-from datetime import datetime, timedelta
 from django.conf import settings
-from django.utils import timezone
 from typing import List, Dict, Any
-from .models import Job, JobMatch, JobSearch
 from resumes.utils import AIAnalyzer
 
 class HHApiClient:
@@ -25,7 +21,7 @@ class HHApiClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"HH.ru API request failed: {str(e)}")
+            raise Exception(f"HH.ru API request failed: {str(e)}") from e
     
     def get_vacancy_details(self, vacancy_id: str) -> Dict[str, Any]:
         """Get detailed information about a specific vacancy"""
@@ -36,7 +32,7 @@ class HHApiClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"HH.ru API request failed: {str(e)}")
+            raise Exception(f"HH.ru API request failed: {str(e)}") from e
 
 class JobMatcher:
     def __init__(self):

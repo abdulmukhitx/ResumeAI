@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -39,7 +40,8 @@ class JobSearch(models.Model):
         verbose_name_plural = 'Job Searches'
     
     def __str__(self):
-        return f"{self.user.email} - {self.search_query}"
+        user_email = getattr(self.user, 'email', None)
+        return f"{user_email or self.user} - {self.search_query}"
 
 class Job(models.Model):
     # Basic job information from HH.ru
@@ -98,38 +100,82 @@ class JobMatch(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_matches')
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='matches')
     resume = models.ForeignKey('resumes.Resume', on_delete=models.CASCADE, related_name='job_matches')
-    job_search = models.ForeignKey(JobSearch, on_delete=models.CASCADE, related_name='matches')
+    match_score = models.FloatField(default=0)  # 0-100 percentage score
+    match_details = models.JSONField(default=dict, blank=True)  # Detailed breakdown of the match
     
-    # Matching scores
-    overall_score = models.FloatField()  # 0.0 to 1.0
-    skills_score = models.FloatField(default=0.0)
-    experience_score = models.FloatField(default=0.0)
-    title_score = models.FloatField(default=0.0)
-    location_score = models.FloatField(default=0.0)
-    salary_score = models.FloatField(default=0.0)
-    
-    # Matching details
-    matched_skills = models.JSONField(default=list)
-    missing_skills = models.JSONField(default=list)
-    match_explanation = models.TextField(blank=True)
-    
-    # User interaction
-    is_viewed = models.BooleanField(default=False)
-    is_applied = models.BooleanField(default=False)
-    is_saved = models.BooleanField(default=False)
-    is_dismissed = models.BooleanField(default=False)
+    # Skills matching data
+    matching_skills = models.JSONField(default=list, blank=True)
+    missing_skills = models.JSONField(default=list, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['-overall_score', '-created_at']
-        unique_together = ['user', 'job', 'resume']
+        ordering = ['-match_score']
         verbose_name = 'Job Match'
         verbose_name_plural = 'Job Matches'
+        unique_together = ('job', 'resume')
     
     def __str__(self):
-        return f"{self.user.email} - {self.job.title} ({self.overall_score:.2f})"
+        # Use self.user directly, as JobMatch already has a user ForeignKey
+        job_title = getattr(self.job, 'title', str(self.job))
+        return f"{self.user} - {job_title} ({self.match_score:.0f}%)"
+
+class JobApplication(models.Model):
+    STATUS_CHOICES = [
+        ('applied', 'Applied'),
+        ('in_review', 'In Review'),
+        ('interview', 'Interview'),
+        ('offered', 'Offered'),
+        ('rejected', 'Rejected'),
+        ('accepted', 'Accepted'),
+        ('withdrawn', 'Withdrawn'),
+    ]
     
-    @property
-    def match_percentage(self):
-        return round(self.overall_score * 100, 1)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_applications')
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
+    resume = models.ForeignKey('resumes.Resume', on_delete=models.CASCADE, related_name='job_applications')
+    
+    match_score = models.FloatField(default=0)
+    cover_letter = models.TextField(blank=True)
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='applied')
+    applied_date = models.DateTimeField(default=timezone.now)
+    last_status_update = models.DateTimeField(auto_now=True)
+    
+    # Response tracking
+    employer_response = models.TextField(blank=True)
+    response_date = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-applied_date']
+        verbose_name = 'Job Application'
+        verbose_name_plural = 'Job Applications'
+        unique_together = ('job', 'user')  # A user can only apply once for a specific job
+    
+    def __str__(self):
+        return f"{self.user} - {self.job.title if hasattr(self.job, 'title') else self.job} ({self.status})"
+    
+    def get_days_since_applied(self):
+        """Return the number of days since application was submitted"""
+        return (timezone.now() - self.applied_date).days
+        
+    def get_status_color(self):
+        """Return a Bootstrap color class based on status"""
+        color_map = {
+            'applied': 'primary',
+            'in_review': 'info',
+            'interview': 'warning',
+            'offered': 'success',
+            'accepted': 'success',
+            'rejected': 'danger',
+            'withdrawn': 'secondary',
+        }
+        return color_map.get(self.status, 'secondary')
+    
+    def get_status_display(self):
+        """Return a formatted display name for the status"""
+        for code, name in self.STATUS_CHOICES:
+            if code == self.status:
+                return name
+        return str(self.status).title()

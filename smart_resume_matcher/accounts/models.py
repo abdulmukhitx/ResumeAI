@@ -1,9 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
+from .fields import SafeImageField
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    profile_picture = SafeImageField(upload_to='profile_pics/', blank=True, null=True)
     is_email_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -13,6 +16,33 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+        
+    def get_profile_picture_url(self):
+        """Safely get the profile picture URL or return None"""
+        try:
+            # First check if field exists and is not None
+            if self.profile_picture:
+                # Try to access name attribute to validate it's a proper file field
+                if hasattr(self.profile_picture, 'name'):
+                    import os
+                    from django.conf import settings
+                    # Check if the file actually exists on disk
+                    if not os.path.exists(os.path.join(settings.MEDIA_ROOT, self.profile_picture.name)):
+                        # File doesn't exist, reset the field
+                        self.profile_picture = None
+                        self.save(update_fields=['profile_picture'])
+                        return None
+                    # Finally try to access the URL
+                    return self.profile_picture.url
+            return None
+        except ValueError:
+            # Specifically catch the ValueError that occurs when there's no file
+            self.profile_picture = None
+            self.save(update_fields=['profile_picture'])
+            return None
+        except Exception:
+            # Catch any other exceptions as a fallback
+            return None
 
 class UserProfile(models.Model):
     EXPERIENCE_CHOICES = [
@@ -66,7 +96,7 @@ class UserProfile(models.Model):
         verbose_name_plural = 'User Profiles'
     
     def __str__(self):
-        return f"{self.user.email} Profile"
+        return f"{self.user.email} Profile" if getattr(self, 'user', None) and getattr(self.user, 'email', None) else "No User Profile"
     
     @property
     def full_name(self):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Job, JobMatch, JobSearch
+from .models import Job, JobMatch, JobSearch, JobApplication
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
@@ -31,11 +31,10 @@ class JobAdmin(admin.ModelAdmin):
 
 @admin.register(JobMatch)
 class JobMatchAdmin(admin.ModelAdmin):
-    list_display = ('user', 'job_title', 'match_percentage', 'is_viewed', 'is_saved', 'created_at')
-    list_filter = ('overall_score', 'is_viewed', 'is_applied', 'is_saved', 'created_at')
+    list_display = ('user', 'job_title', 'match_score', 'created_at')
+    list_filter = ('match_score', 'created_at')
     search_fields = ('user__email', 'job__title', 'job__company_name')
-    readonly_fields = ('overall_score', 'skills_score', 'experience_score', 'title_score', 
-                      'matched_skills', 'missing_skills', 'match_explanation')
+    readonly_fields = ('match_score', 'matching_skills', 'missing_skills')
     
     def job_title(self, obj):
         return obj.job.title
@@ -47,3 +46,14 @@ class JobSearchAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
     search_fields = ('user__email', 'search_query')
     readonly_fields = ('started_at', 'completed_at', 'total_found', 'jobs_analyzed', 'matches_found')
+
+@admin.register(JobApplication)
+class JobApplicationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'job_title', 'status', 'applied_date', 'last_status_update')
+    list_filter = ('status', 'applied_date', 'last_status_update')
+    search_fields = ('user__email', 'job__title', 'job__company_name')
+    readonly_fields = ('applied_date',)
+    
+    def job_title(self, obj):
+        return obj.job.title
+    job_title.short_description = 'Job Title'

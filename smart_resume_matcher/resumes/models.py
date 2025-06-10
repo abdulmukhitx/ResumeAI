@@ -55,11 +55,13 @@ class Resume(models.Model):
         verbose_name_plural = 'Resumes'
         
     def __str__(self):
-        return f"{self.user.email} - {self.original_filename}"
+        user_email = getattr(self.user, 'email', str(self.user))
+        return f"{user_email} - {self.original_filename}"
     
     def save(self, *args, **kwargs):
         if self.file:
-            self.file_size = self.file.size
+            if hasattr(self.file, 'size'):
+                self.file_size = self.file.size
             if not self.original_filename:
                 self.original_filename = os.path.basename(self.file.name)
         super().save(*args, **kwargs)

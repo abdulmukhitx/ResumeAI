@@ -27,6 +27,7 @@ class ResumeAdmin(admin.ModelAdmin):
     )
     
     def get_readonly_fields(self, request, obj=None):
+        # The `request` argument is intentionally unused
         if obj:  # Editing existing object
             return self.readonly_fields + ('file', 'user')
         return self.readonly_fields

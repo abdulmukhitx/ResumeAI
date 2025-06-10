@@ -1,8 +1,7 @@
 import PyPDF2
 import requests
-from io import BytesIO
 from django.conf import settings
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 class PDFProcessor:
     @staticmethod
@@ -16,12 +15,16 @@ class PDFProcessor:
                     text += page.extract_text() + "\n"
                 return text.strip()
         except Exception as e:
-            raise Exception(f"Error extracting text from PDF: {str(e)}")
+            raise RuntimeError(f"Error extracting text from PDF: {str(e)}") from e
 
 class AIAnalyzer:
     def __init__(self):
         self.api_key = settings.GROQ_API_KEY
         self.api_url = settings.GROQ_API_URL
+        
+    def extract_text_from_pdf(self, file_path: str) -> str:
+        """Extract text from PDF file using PDFProcessor"""
+        return PDFProcessor.extract_text_from_pdf(file_path)
         
     def analyze_resume(self, resume_text: str) -> Dict[str, Any]:
         """Analyze resume using Groq AI"""
@@ -52,8 +55,8 @@ class AIAnalyzer:
                     "key_responsibilities": ["main responsibilities"]
                 }}
             ],
-            "summary": "Brief professional summary in 2-3 sentences",
-            "confidence_score": 0.85
+            "summary": "A brief professional summary based on the resume content",
+            "confidence_score": 0.95
         }}
 
         Guidelines:
@@ -62,7 +65,71 @@ class AIAnalyzer:
         - Skills should include both technical skills and relevant soft skills
         - If information is not available, use empty arrays or null values
         - Confidence score should be between 0.0 and 1.0 based on text quality
+
+        Only return the JSON object, no explanations or other text.
         """
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "model": "llama3-70b-8192",  # Using Llama 3 70B model
+                "messages": [
+                    {
+                        "role": "system", 
+                        "content": "You are an expert resume analyzer. Extract structured information from resumes accurately."
+                    },
+                    {
+                        "role": "user", 
+                        "content": prompt
+                    }
+                ],
+                "temperature": 0.1,  # Low temperature for more deterministic outputs
+                "max_tokens": 2000
+            }
+            
+            # Make API call
+            response = requests.post(self.api_url, headers=headers, json=payload)
+            response.raise_for_status()
+            
+            # Parse response
+            result = response.json()
+            ai_response = result.get('choices', [{}])[0].get('message', {}).get('content', '{}')
+            
+            # Extract JSON from response (in case AI added any explanations)
+            import json
+            import re
+            
+            # Try to find JSON block in the response
+            json_match = re.search(r'```json\s*(.*?)\s*```', ai_response, re.DOTALL)
+            if json_match:
+                # Extract JSON from code block
+                json_str = json_match.group(1)
+            else:
+                # Assume the entire response is JSON
+                json_str = ai_response
+                
+            # Clean up and parse JSON
+            json_str = re.sub(r'```|json', '', json_str).strip()
+            data = json.loads(json_str)
+            
+            return data
+            
+        except Exception as e:
+            # Log error and return basic structure
+            print(f"Error analyzing resume: {str(e)}")
+            return {
+                "skills": [],
+                "experience_level": "junior",  # Default to junior
+                "job_titles": [],
+                "education": [],
+                "work_experience": [],
+                "summary": "Failed to analyze resume.",
+                "confidence_score": 0.0
+            }
         
         headers = {
             'Authorization': f'Bearer {self.api_key}',
@@ -102,12 +169,16 @@ class AIAnalyzer:
                 import re
                 json_match = re.search(r'\{.*\}', content, re.DOTALL)
                 if json_match:
-                    analysis_data = json.loads(json_match.group())
-                    return analysis_data
+                    try:
+                        analysis_data = json.loads(json_match.group())
+                        return analysis_data
+                    except Exception as exc:
+                        raise ValueError("Could not parse JSON from AI response") from exc
                 else:
-                    raise Exception("Could not parse JSON from AI response")
+                    # Explicitly chain the exception for better traceability
+                    raise ValueError("Could not parse JSON from AI response") from exc
                     
         except requests.exceptions.RequestException as e:
-            raise Exception(f"AI API request failed: {str(e)}")
+            raise RuntimeError(f"AI API request failed: {str(e)}") from e
         except Exception as e:
-            raise Exception(f"AI analysis failed: {str(e)}")
+            raise RuntimeError(f"AI analysis failed: {str(e)}") from e

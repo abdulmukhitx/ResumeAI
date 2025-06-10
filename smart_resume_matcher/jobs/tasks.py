@@ -37,17 +37,20 @@ def search_and_match_jobs_task(self, user_id, resume_id):
         # Prepare search parameters
         search_params = {
             'text': job_search.search_query,
-            'area': 1,  # Moscow area, you can make this dynamic
             'per_page': 50,  # Max results per page
             'page': 0,
         }
         
+        # Only set area if you have a valid location code (default to Moscow if needed)
+        if job_search.location and job_search.location.strip():
+            # Try to use the provided location
+            search_params['area'] = job_search.location
+        else:
+            # Default to Moscow (area code 1) as fallback
+            search_params['area'] = 1
+        
         if job_search.salary_from:
             search_params['salary'] = job_search.salary_from
-        
-        if job_search.location:
-            # You might want to add location mapping logic here
-            pass
         
         # Search for jobs
         search_result = hh_client.search_vacancies(search_params)

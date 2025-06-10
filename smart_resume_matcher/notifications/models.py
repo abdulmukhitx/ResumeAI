@@ -42,4 +42,4 @@ class EmailNotification(models.Model):
         verbose_name_plural = 'Email Notifications'
     
     def __str__(self):
-        return f"{self.user.email} - {self.email_type} - {self.status}"
+        return f"{getattr(self.user, 'email', str(self.user))} - {self.email_type} - {self.status}"

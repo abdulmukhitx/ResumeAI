@@ -1,0 +1,119 @@
+/* General styles for the Smart Resume Matcher application */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Job description styling */
+.job-description, .job-requirements {
+    white-space: pre-line;
+}
+
+/* Custom styling for file inputs */
+.custom-file-input:lang(en)~.custom-file-label::after {
+    content: "Browse";
+}
+
+/* Progress bars animation */
+.progress-bar {
+    transition: width 1s ease-in-out;
+}
+
+/* Logo hover effect */
+.navbar-brand:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Form controls focus */
+.form-control:focus {
+    border-color: #4285f4;
+    box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25);
+}
+
+/* Custom card hover effect */
+.card.hover-effect {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card.hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom buttons */
+.btn-ai {
+    background-color: #8c43ff;
+    border-color: #8c43ff;
+    color: white;
+}
+
+.btn-ai:hover {
+    background-color: #7938d6;
+    border-color: #7938d6;
+    color: white;
+}
+
+/* Skills badges */
+.skill-badge {
+    display: inline-block;
+    background-color: #f8f9fa;
+    color: #212529;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    margin: 0.25rem;
+    font-size: 0.85rem;
+    border: 1px solid #dee2e6;
+}
+
+.skill-badge.matching {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border-color: #badbcc;
+}
+
+.skill-badge.missing {
+    background-color: #f8d7da;
+    color: #842029;
+    border-color: #f5c2c7;
+}
+
+/* Animated status indicators */
+.pulse {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #28a745;
+    margin-right: 6px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+}

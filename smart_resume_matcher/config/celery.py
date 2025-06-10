@@ -1,7 +1,6 @@
 # config/celery.py
 import os
 from celery import Celery
-from django.conf import settings
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -23,7 +22,3 @@ app.conf.beat_schedule = {
     },
 }
 
-# config/__init__.py
-from .celery import app as celery_app
-
-__all__ = ('celery_app',)

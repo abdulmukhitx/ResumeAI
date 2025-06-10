@@ -1,14 +1,12 @@
-# config/settings.py
-import os
 from decouple import config
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me')
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me')  # Note: Ensure to override the default SECRET_KEY and database credentials in production.
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = ['*'] if DEBUG else [config('ALLOWED_HOSTS', default='localhost')]
+ALLOWED_HOSTS = ['*'] if DEBUG else [config('ALLOWED_HOSTS', default='localhost')]  # Note: Configure ALLOWED_HOSTS properly in production to avoid security risks.
 
 # Application definition
 DJANGO_APPS = [
@@ -71,12 +69,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='smart_resume_db'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='password'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

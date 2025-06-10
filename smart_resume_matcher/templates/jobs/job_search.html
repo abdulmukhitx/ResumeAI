@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Search - Smart Resume Matcher{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Search for Jobs</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" class="row g-3">
+                    {% csrf_token %}
+                    
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="query" name="query" placeholder="Job title, keywords, or company" required>
+                            <label for="query">Job title, keywords, or company</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="location" name="location" placeholder="Location">
+                            <label for="location">Location (City, Country)</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary h-100 w-100">
+                            <i class="fas fa-search me-2"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if user_resume %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Job Search Results</h5>
+                    <span class="badge bg-primary">{{ jobs|length }} jobs found</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if search_performed %}
+                    {% if jobs %}
+                        <div class="row">
+                            {% for job in jobs %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ job.title }}</h5>
+                                            <h6 class="card-subtitle mb-2 text-muted">{{ job.company_name }}</h6>
+                                            
+                                            <div class="d-flex justify-content-between my-2">
+                                                {% if job.salary_from or job.salary_to %}
+                                                    <span class="badge bg-success">
+                                                        {% if job.salary_from and job.salary_to %}
+                                                            {{ job.salary_from }} - {{ job.salary_to }} {{ job.salary_currency }}
+                                                        {% elif job.salary_from %}
+                                                            From {{ job.salary_from }} {{ job.salary_currency }}
+                                                        {% elif job.salary_to %}
+                                                            Up to {{ job.salary_to }} {{ job.salary_currency }}
+                                                        {% endif %}
+                                                    </span>
+                                                {% endif %}
+                                                
+                                                {% if job.location %}
+                                                    <span class="badge bg-secondary">{{ job.location }}</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <p class="card-text">{{ job.description|truncatechars:150 }}</p>
+                                            
+                                            <div class="d-grid gap-2 mt-3">
+                                                <a href="{% url 'job_detail' job.id %}" class="btn btn-outline-primary">View Details</a>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer text-muted">
+                                            <small>Posted: {{ job.published_at|date:"M d, Y" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center py-4">
+                            <p class="mb-0">No jobs found matching your search criteria. Try different keywords or location.</p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>Enter your search criteria and click "Search" to find jobs.</p>
+                        <p class="text-muted">Pro tip: For best results, use keywords from your resume.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+            <div class="alert alert-warning mt-4">
+                <h5 class="alert-heading">Resume Required</h5>
+                <p>You need to upload your resume to search for jobs. Your resume helps us find the best matches for your skills and experience.</p>
+                <hr>
+                <div class="d-grid gap-2 col-md-6 mx-auto">
+                    <a href="{% url 'resume_upload' %}" class="btn btn-warning">Upload Resume</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

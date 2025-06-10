@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} - Smart Resume Matcher{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ job.title }}</h4>
+                    
+                    {% if job_match %}
+                        <span class="badge {% if job_match.match_score >= 75 %}bg-success{% elif job_match.match_score >= 50 %}bg-info{% else %}bg-warning{% endif %}">
+                            {{ job_match.match_score }}% Match
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Company Info -->
+                <div class="mb-4">
+                    <h5 class="card-title">
+                        <i class="fas fa-building me-2 text-secondary"></i> {{ job.company_name }}
+                    </h5>
+                    {% if job.company_url %}
+                        <a href="{{ job.company_url }}" target="_blank" class="text-decoration-none">
+                            Visit company website <i class="fas fa-external-link-alt ms-1"></i>
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Key Details -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="border p-3 rounded">
+                            <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i> <strong>Location:</strong> {{ job.location|default:"Not specified" }}</p>
+                            <p class="mb-2"><i class="fas fa-briefcase me-2 text-primary"></i> <strong>Job Type:</strong> {{ job.job_type|default:"Not specified" }}</p>
+                            <p class="mb-0">
+                                <i class="fas fa-calendar me-2 text-primary"></i> 
+                                <strong>Posted:</strong> {{ job.published_at|date:"M d, Y" }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border p-3 rounded">
+                            <p class="mb-2">
+                                <i class="fas fa-money-bill-wave me-2 text-success"></i> 
+                                <strong>Salary:</strong> 
+                                {% if job.salary_from or job.salary_to %}
+                                    {% if job.salary_from and job.salary_to %}
+                                        {{ job.salary_from }} - {{ job.salary_to }} {{ job.salary_currency }}
+                                    {% elif job.salary_from %}
+                                        From {{ job.salary_from }} {{ job.salary_currency }}
+                                    {% elif job.salary_to %}
+                                        Up to {{ job.salary_to }} {{ job.salary_currency }}
+                                    {% endif %}
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </p>
+                            <p class="mb-2"><i class="fas fa-clock me-2 text-success"></i> <strong>Work Schedule:</strong> {{ job.schedule|default:"Not specified" }}</p>
+                            <p class="mb-0">
+                                <i class="fas fa-user-graduate me-2 text-success"></i>
+                                <strong>Experience:</strong> {{ job.experience_required|default:"Not specified" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Job Description -->
+                <div class="mb-4">
+                    <h5>Job Description</h5>
+                    <div class="job-description">{{ job.description|linebreaks }}</div>
+                </div>
+                
+                <!-- Requirements -->
+                <div class="mb-4">
+                    <h5>Requirements</h5>
+                    <div class="job-requirements">{{ job.requirements|linebreaks }}</div>
+                </div>
+                
+                <!-- Required Skills -->
+                {% if job.required_skills %}
+                <div class="mb-4">
+                    <h5>Required Skills</h5>
+                    <div class="d-flex flex-wrap">
+                        {% for skill in job.required_skills %}
+                            <span class="badge bg-light text-dark border me-2 mb-2 p-2">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Application Section -->
+                <div class="mt-4 d-grid gap-2">
+                    {% if application %}
+                        <div class="alert alert-success mb-0">
+                            <h5 class="alert-heading">Application Submitted</h5>
+                            <p>You have already applied for this position on {{ application.applied_date|date:"M d, Y" }}.</p>
+                            <p class="mb-0">Status: <strong>{{ application.get_status_display }}</strong></p>
+                        </div>
+                    {% else %}
+                        {% if job.is_active %}
+                            <a href="{% url 'job_application' job.id %}" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i> Apply Now
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary" disabled>
+                                This job is no longer active
+                            </button>
+                        {% endif %}
+                        
+                        {% if job.application_url %}
+                            <a href="{{ job.application_url }}" class="btn btn-outline-primary" target="_blank">
+                                Apply on HH.ru <i class="fas fa-external-link-alt ms-1"></i>
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Match Analysis -->
+        {% if job_match %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Match Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 text-center">
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar 
+                                {% if job_match.match_score >= 75 %}bg-success
+                                {% elif job_match.match_score >= 50 %}bg-info
+                                {% else %}bg-warning{% endif %}"
+                                style="width: {{ job_match.match_score }}%;" 
+                                aria-valuenow="{{ job_match.match_score }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <h3 class="my-3">{{ job_match.match_score }}%</h3>
+                        <p class="text-muted">Overall Match Score</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Skills Match: {{ job_match.skills_score|floatformat:0 }}%</h6>
+                        <div class="progress mb-2" style="height: 5px;">
+                            <div class="progress-bar bg-success" style="width: {{ job_match.skills_score|floatformat:0 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Experience Match: {{ job_match.experience_score|floatformat:0 }}%</h6>
+                        <div class="progress mb-2" style="height: 5px;">
+                            <div class="progress-bar bg-info" style="width: {{ job_match.experience_score|floatformat:0 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Title Match: {{ job_match.title_score|floatformat:0 }}%</h6>
+                        <div class="progress mb-2" style="height: 5px;">
+                            <div class="progress-bar bg-warning" style="width: {{ job_match.title_score|floatformat:0 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    {% if job_match.match_explanation %}
+                        <div class="alert alert-light border">
+                            <p class="mb-0"><strong>Analysis:</strong> {{ job_match.match_explanation }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if job_match.matched_skills %}
+                        <div class="mt-3">
+                            <h6>Matching Skills</h6>
+                            <div class="d-flex flex-wrap">
+                                {% for skill in job_match.matched_skills %}
+                                    <span class="badge bg-success me-2 mb-1">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if job_match.missing_skills %}
+                        <div class="mt-3">
+                            <h6>Skills to Develop</h6>
+                            <div class="d-flex flex-wrap">
+                                {% for skill in job_match.missing_skills %}
+                                    <span class="badge bg-light text-dark border me-2 mb-1">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Similar Jobs -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Similar Jobs</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for similar_job in similar_jobs %}
+                    <a href="{% url 'job_detail' similar_job.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ similar_job.title|truncatechars:40 }}</h6>
+                            {% if similar_job.match_score %}
+                                <span class="badge 
+                                    {% if similar_job.match_score >= 75 %}bg-success
+                                    {% elif similar_job.match_score >= 50 %}bg-info
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ similar_job.match_score }}%
+                                </span>
+                            {% endif %}
+                        </div>
+                        <p class="mb-1">{{ similar_job.company_name }}</p>
+                        <small class="text-muted">
+                            {{ similar_job.location }}
+                            {% if similar_job.salary_from or similar_job.salary_to %}
+                                • 
+                                {% if similar_job.salary_from and similar_job.salary_to %}
+                                    {{ similar_job.salary_from }} - {{ similar_job.salary_to }} {{ similar_job.salary_currency }}
+                                {% elif similar_job.salary_from %}
+                                    From {{ similar_job.salary_from }} {{ similar_job.salary_currency }}
+                                {% elif similar_job.salary_to %}
+                                    Up to {{ similar_job.salary_to }} {{ similar_job.salary_currency }}
+                                {% endif %}
+                            {% endif %}
+                        </small>
+                    </a>
+                {% empty %}
+                    <div class="list-group-item">No similar jobs found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
