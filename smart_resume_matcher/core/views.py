@@ -6,6 +6,7 @@ import random
 # Dynamically load models to avoid circular imports
 JobMatch = apps.get_model('jobs', 'JobMatch')
 Resume = apps.get_model('resumes', 'Resume')
+Job = apps.get_model('jobs', 'Job')
 
 # AI tips for career development
 CAREER_TIPS = [
@@ -39,7 +40,20 @@ def home_view(request):
                 match_score__gte=50  # Show only relevant matches (score >= 50%)
             ).select_related('job').order_by('-match_score')[:6]  # Get top 6 matches
             
-            context['job_matches'] = job_matches
+            # Format job matches for the template
+            formatted_matches = []
+            for match in job_matches:
+                formatted_matches.append({
+                    'id': match.job.id,
+                    'title': match.job.title,
+                    'company': match.job.company_name,
+                    'location': match.job.location,
+                    'description': match.job.description[:200],  # First 200 chars
+                    'match_score': int(match.match_score),
+                    'matching_skills': match.matching_skills[:5]  # Show top 5 matching skills
+                })
+            
+            context['job_matches'] = formatted_matches
             
             # Add AI career tip
             context['ai_tip'] = random.choice(CAREER_TIPS)

@@ -5,7 +5,8 @@ An AI-powered resume analysis and job matching platform that helps you find the 
 ## Features
 
 - **Resume Analysis**: Upload your resume and get intelligent analysis of your skills, experience, and qualifications
-- **Job Matching**: Find jobs that match your skills and experience with a detailed match score
+- **AI-Powered Job Matching**: Our advanced algorithm analyzes your resume and finds the best job opportunities that match your unique profile
+- **Skills-Based Matching**: See how your skills align with job requirements and identify skill gaps
 - **Job Search**: Search for jobs using custom filters and see your match score for each position
 - **Application Tracking**: Keep track of your job applications and their status
 
@@ -15,7 +16,7 @@ An AI-powered resume analysis and job matching platform that helps you find the 
 
 1. Create an account
 2. Upload your resume (PDF format)
-3. Browse matched jobs
+3. Use the "AI Job Matches" feature to find the best opportunities
 4. Apply to positions that interest you
 5. Track your applications
 

@@ -167,6 +167,10 @@ GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 HH_API_BASE_URL = 'https://api.hh.ru'
 HH_API_USER_AGENT = config('HH_API_USER_AGENT', default='smart-resume-matcher-1.0')
 
+# AI Job Matching Settings
+AI_MATCHING_MIN_SCORE = config('AI_MATCHING_MIN_SCORE', default=30, cast=int)
+AI_MATCHING_DEFAULT_LOCATION = config('AI_MATCHING_DEFAULT_LOCATION', default='1')  # Moscow by default
+
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB

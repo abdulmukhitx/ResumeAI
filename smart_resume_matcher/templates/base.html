@@ -66,6 +66,16 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'profile' %}">Profile</a>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="jobsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Jobs
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="jobsDropdown">
+                                <li><a class="dropdown-item" href="{% url 'ai_job_matches' %}"><i class="fas fa-robot me-2"></i> AI Job Matches</a></li>
+                                <li><a class="dropdown-item" href="{% url 'job_search' %}"><i class="fas fa-search me-2"></i> Job Search</a></li>
+                                <li><a class="dropdown-item" href="{% url 'job_list' %}"><i class="fas fa-list me-2"></i> All Matches</a></li>
+                            </ul>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'resume_upload' %}">Upload Resume</a>
                         </li>
@@ -100,10 +110,10 @@
 
     <footer class="footer text-center">
         <div class="container">
-            <p>&copy; {% now "Y" %} Smart Resume Matcher. All rights reserved.</p>
+            <span>© {% now "Y" %} Smart Resume Matcher - AI-Powered Job Matching Technology</span>
         </div>
     </footer>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/job-description-formatter.js"></script>
     {% block extra_js %}{% endblock %}

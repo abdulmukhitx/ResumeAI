@@ -8,23 +8,35 @@
     <div class="col-md-12">
         <div class="card">
             <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Search for Jobs</h4>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Search for Jobs</h4>
+                    <a href="{% url 'ai_job_matches' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-robot me-1"></i> Try AI Job Matching
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <form method="post" class="row g-3">
                     {% csrf_token %}
                     
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <div class="form-floating">
                             <input type="text" class="form-control" id="query" name="query" placeholder="Job title, keywords, or company" required>
                             <label for="query">Job title, keywords, or company</label>
                         </div>
                     </div>
                     
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-floating">
                             <input type="text" class="form-control" id="location" name="location" placeholder="Location">
                             <label for="location">Location (City, Country)</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <div class="form-check form-switch h-100 d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="use_ai_matching" name="use_ai_matching" checked>
+                            <label class="form-check-label ms-2" for="use_ai_matching">AI Matching</label>
                         </div>
                     </div>
                     

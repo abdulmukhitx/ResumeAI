@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from django.apps import apps
 from .services import HHApiClient
+from .job_matcher import JobMatcher
 
 # Dynamically load models to avoid circular imports
 Resume = apps.get_model('resumes', 'Resume')
@@ -54,6 +55,101 @@ def job_list_view(request):
     return render(request, 'jobs/job_list.html', context)
 
 @login_required
+def ai_job_matches_view(request):
+    """View to display AI-powered job matches based on resume analysis"""
+    # Get latest user resume
+    user_resume = Resume.objects.filter(user=request.user, is_active=True).first()
+    
+    if not user_resume:
+        messages.warning(request, "Please upload your resume to see AI job matches.")
+        return redirect('resume_upload')
+    
+    # Initialize variables
+    jobs = []
+    search_performed = False
+    search_query = request.GET.get('query', '')
+    location = request.GET.get('location', '')
+    auto_search = request.GET.get('auto_search', False) == 'true'
+    
+    # Create job matcher instance
+    job_matcher = JobMatcher(user=request.user, resume=user_resume)
+    
+    # Perform search if requested
+    if auto_search or search_query or location:
+        search_performed = True
+        
+        # If auto_search is enabled, generate search query from resume
+        if auto_search and not search_query:
+            search_query = job_matcher.generate_search_query_from_resume()
+        
+        # Create JobSearch record
+        job_search = JobSearch.objects.create(
+            user=request.user,
+            resume=user_resume,
+            search_query=search_query,
+            location=location,
+            status='processing',
+            started_at=timezone.now()
+        )
+        
+        try:
+            # Find matching jobs
+            job_matches = job_matcher.find_matching_jobs(search_query=search_query, location=location)
+            
+            # Ensure job_matches is not None before processing
+            if job_matches is None:
+                job_matches = []
+                messages.warning(request, "No matches returned. Please try different search terms.")
+            
+            # Extract jobs and update JobSearch record
+            jobs = []
+            for match in job_matches:
+                if isinstance(match, tuple) and len(match) >= 3 and match[0] is not None:
+                    jobs.append(match[0])
+            
+            job_search.total_found = len(jobs)
+            job_search.jobs_analyzed = len(jobs)
+            job_search.matches_found = len(jobs)
+            job_search.status = 'completed'
+            job_search.completed_at = timezone.now()
+            job_search.save()
+            
+            # Success message
+            if jobs:
+                messages.success(request, f"Found {len(jobs)} job matches based on your resume profile.")
+            else:
+                messages.info(request, "No matching jobs found. Try different search terms or location.")
+        
+        except Exception as e:
+            # Update JobSearch record with error
+            job_search.status = 'failed'
+            job_search.completed_at = timezone.now()
+            job_search.save()
+            
+            # Log the detailed error for admins
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Job matching error: {str(e)}", exc_info=True)
+            
+            # User-friendly error message
+            messages.error(request, f"Error finding job matches: {str(e)}")
+    
+    # Pagination
+    paginator = Paginator(jobs, 10)
+    page_number = request.GET.get('page', 1)
+    jobs_page = paginator.get_page(page_number)
+    
+    context = {
+        'user_resume': user_resume,
+        'jobs': jobs_page,
+        'search_performed': search_performed,
+        'search_query': search_query,
+        'location': location
+    }
+    
+    return render(request, 'jobs/ai_job_matches.html', context)
+
+@login_required
 def job_search_view(request):
     """View to search for jobs"""
     # Get user's resume
@@ -71,6 +167,7 @@ def job_search_view(request):
         search_performed = True
         query = request.POST.get('query', '')
         location = request.POST.get('location', '')
+        use_ai_matching = request.POST.get('use_ai_matching', False) == 'on'
         
         # Create JobSearch record
         job_search = JobSearch.objects.create(
@@ -154,21 +251,36 @@ def job_search_view(request):
             
             # Process job results
             for item in search_results.get('items', []):
+                # Skip items with missing required fields
+                if 'id' not in item or 'name' not in item or 'employer' not in item:
+                    continue
+                
+                # Safely get nested values
+                company_name = item.get('employer', {}).get('name', 'Unknown Company')
+                company_url = item.get('employer', {}).get('alternate_url', '')
+                description = item.get('snippet', {}).get('responsibility', '') if item.get('snippet') else ''
+                requirements = item.get('snippet', {}).get('requirement', '') if item.get('snippet') else ''
+                salary_from = item.get('salary', {}).get('from') if item.get('salary') else None
+                salary_to = item.get('salary', {}).get('to') if item.get('salary') else None
+                salary_currency = item.get('salary', {}).get('currency', 'RUB') if item.get('salary') else 'RUB'
+                location = item.get('area', {}).get('name', '') if item.get('area') else ''
+                employment_type = item.get('employment', {}).get('name', '') if item.get('employment') else ''
+                
                 # Check if job already exists in DB
                 job, created = Job.objects.get_or_create(
                     hh_id=item['id'],
                     defaults={
                         'title': item['name'],
-                        'company_name': item['employer']['name'],
-                        'company_url': item['employer'].get('alternate_url', ''),
-                        'description': item.get('snippet', {}).get('responsibility', ''),
-                        'requirements': item.get('snippet', {}).get('requirement', ''),
-                        'salary_from': item.get('salary', {}).get('from'),
-                        'salary_to': item.get('salary', {}).get('to'),
-                        'salary_currency': item.get('salary', {}).get('currency'),
-                        'location': item.get('area', {}).get('name', ''),
-                        'employment_type': item.get('employment', {}).get('name', ''),  # Fixed field name
-                        'hh_url': item.get('alternate_url', ''),  # Fixed field name
+                        'company_name': company_name,
+                        'company_url': company_url,
+                        'description': description,
+                        'requirements': requirements,
+                        'salary_from': salary_from,
+                        'salary_to': salary_to,
+                        'salary_currency': salary_currency,
+                        'location': location,
+                        'employment_type': employment_type,
+                        'hh_url': item.get('alternate_url', ''),
                         'published_at': item.get('published_at') or timezone.now(),
                         'is_active': True
                     }
@@ -186,19 +298,48 @@ def job_search_view(request):
                         # Handle error, continue with basic job info
                         pass
                 
+                # Calculate match score if AI matching is enabled
+                if use_ai_matching and user_resume:
+                    try:
+                        job_matcher = JobMatcher(user=request.user, resume=user_resume)
+                        match_score, match_details = job_matcher.calculate_match_score(item)
+                        
+                        # Save match details
+                        JobMatch.objects.update_or_create(
+                            job=job,
+                            resume=user_resume,
+                            defaults={
+                                'user': request.user,
+                                'match_score': match_score,
+                                'match_details': match_details,
+                                'matching_skills': match_details.get('matching_skills', []),
+                                'missing_skills': match_details.get('missing_skills', [])
+                            }
+                        )
+                    except Exception as match_error:
+                        logger.warning(f"Error calculating match score for job {job.id}: {str(match_error)}")
+                        # Continue processing other jobs even if one fails
+                
                 jobs.append(job)
             
             # Success message
             messages.success(request, f"Found {len(jobs)} jobs matching your search.")
             
         except Exception as e:
+            # Log detailed error
+            logger.error(f"Job search error: {str(e)}", exc_info=True)
+            
             # Update JobSearch record with error
             job_search.status = 'failed'
             job_search.completed_at = timezone.now()
             job_search.save()
             
-            # Error message
-            messages.error(request, f"Error searching for jobs: {str(e)}")
+            # Show user-friendly error message
+            error_msg = str(e)
+            if "NoneType" in error_msg:
+                messages.error(request, "Error processing job data. Please try again with different search terms.")
+            else:
+                messages.error(request, f"Error searching for jobs: {error_msg}")
     
     context = {
         'jobs': jobs,

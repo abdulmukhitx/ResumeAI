@@ -4,6 +4,25 @@ import re
 
 register = template.Library()
 
+@register.filter(name='filter_by_resume')
+def filter_by_resume(matches, resume):
+    """
+    Filter job matches by a specific resume
+    Usage: {{ job.matches.all|filter_by_resume:user_resume }}
+    """
+    if not resume or not matches:
+        return None
+    
+    try:
+        for match in matches:
+            if match and hasattr(match, 'resume_id') and match.resume_id == resume.id:
+                return match
+    except Exception:
+        # Handle any unexpected errors gracefully
+        return None
+    
+    return None
+
 @register.filter(name='clean_html_description')
 def clean_html_description(value):
     """
@@ -61,3 +80,22 @@ def clean_html_description(value):
         value = value.strip()
     
     return value
+
+@register.filter(name='match_score_class')
+def match_score_class(score):
+    """
+    Return appropriate CSS class based on match score
+    Usage: {{ job_match.match_score|match_score_class }}
+    """
+    try:
+        score_val = float(score)
+        if score_val >= 75:
+            return 'bg-success'
+        elif score_val >= 50:
+            return 'bg-info'
+        elif score_val >= 30:
+            return 'bg-warning'
+        else:
+            return 'bg-danger'
+    except (ValueError, TypeError):
+        return 'bg-secondary'
