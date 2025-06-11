@@ -77,10 +77,21 @@ DATABASES = {
     }
 }
 
-# Use PostgreSQL on Render
+# Use PostgreSQL on Render or other production environments
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
+    # Parse database URL with options for more reliable connections
     DATABASES['default'] = dj_database_url.parse(DATABASE_URL)
+    
+    # Add connection pooling and more robust error handling
+    DATABASES['default']['CONN_MAX_AGE'] = 60
+    DATABASES['default']['OPTIONS'] = {
+        'connect_timeout': 10,
+        'sslmode': config('DB_SSLMODE', default='require'),  # Use 'require' for Render
+    }
+    
+    # Add retries for database operations
+    DATABASES['default']['ATOMIC_REQUESTS'] = True
 
 # Redis and Celery
 REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
