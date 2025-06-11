@@ -3,9 +3,9 @@ services:
     name: smart-resume-matcher
     env: python
     buildCommand: ./build.sh
-    startCommand: ./start.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
     disk:
-      name: sqlite-data
+      name: smart-resume-data
       mountPath: /var/data
       sizeGB: 1
     envVars:

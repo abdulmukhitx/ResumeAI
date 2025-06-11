@@ -15,6 +15,14 @@ pip install -r requirements.txt
 echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
+# Set up SQLite database persistence if running on Render
+if [ -d "/var/data" ]; then
+  echo "Render environment detected, setting up SQLite persistence..."
+  if [ -f "./setup_sqlite_persistence.sh" ]; then
+    bash ./setup_sqlite_persistence.sh
+  fi
+fi
+
 # Always run migrations since we're using SQLite
 echo "Running migrations with SQLite database..."
 python manage.py migrate --noinput || echo "Migration failed - will retry during startup"
