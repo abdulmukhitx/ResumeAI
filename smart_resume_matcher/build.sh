@@ -15,47 +15,9 @@ pip install -r requirements.txt
 echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
-# Check if DATABASE_URL is available
-if [ -z "$DATABASE_URL" ]; then
-  echo "WARNING: No DATABASE_URL found, skipping migrations"
-else
-  echo "DATABASE_URL is set. Will attempt migrations after a short delay..."
-  # Add a delay to ensure database is fully available
-  sleep 5
-  
-  # Test database connection before migrating
-  echo "Testing database connection..."
-  python -c "
-import sys
-import os
-import django
-import dj_database_url
-import psycopg2
-import time
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-django.setup()
-db_url = os.environ.get('DATABASE_URL')
-db_config = dj_database_url.parse(db_url)
-try:
-    conn = psycopg2.connect(
-        dbname=db_config['NAME'],
-        user=db_config['USER'],
-        password=db_config['PASSWORD'],
-        host=db_config['HOST'],
-        port=db_config['PORT']
-    )
-    conn.close()
-    print('Database connection successful')
-except Exception as e:
-    print(f'Database connection error: {e}')
-    # Don't exit with error to allow build to complete
-    # The web process will retry migrations
-" || echo "Database connection test failed, but continuing build process"
-
-  # Run migrations with retry logic
-  echo "Running migrations..."
-  python manage.py migrate --noinput || echo "Migrations failed - the web process will retry on startup"
-fi
+# Always run migrations since we're using SQLite
+echo "Running migrations with SQLite database..."
+python manage.py migrate --noinput || echo "Migration failed - will retry during startup"
 
 # Create superuser if not exists (optional and only if env vars are set)
 if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] && [ -n "$DJANGO_SUPERUSER_EMAIL" ]; then

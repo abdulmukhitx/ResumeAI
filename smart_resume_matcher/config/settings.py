@@ -69,29 +69,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database
+# Database - Always use SQLite, even in production
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
+        'ATOMIC_REQUESTS': True,  # Wrap all requests in transactions
     }
 }
 
-# Use PostgreSQL on Render or other production environments
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    # Parse database URL with options for more reliable connections
-    DATABASES['default'] = dj_database_url.parse(DATABASE_URL)
-    
-    # Add connection pooling and more robust error handling
-    DATABASES['default']['CONN_MAX_AGE'] = 60
-    DATABASES['default']['OPTIONS'] = {
-        'connect_timeout': 10,
-        'sslmode': config('DB_SSLMODE', default='require'),  # Use 'require' for Render
-    }
-    
-    # Add retries for database operations
-    DATABASES['default']['ATOMIC_REQUESTS'] = True
+# We're using SQLite, so we ignore DATABASE_URL even if it's set
+# This avoids any PostgreSQL connection attempts
+# DATABASE_URL = os.environ.get('DATABASE_URL')
+# Commented out to prevent using PostgreSQL in any environment
 
 # Redis and Celery
 REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
