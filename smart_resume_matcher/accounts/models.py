@@ -12,7 +12,13 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
     
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = []  # Remove username from required fields since we use email
+
+    def save(self, *args, **kwargs):
+        # Ensure username is always set to email to prevent conflicts
+        if not self.username or self.username != self.email:
+            self.username = self.email
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.email

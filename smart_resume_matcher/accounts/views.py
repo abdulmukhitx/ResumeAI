@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from django.apps import apps
+from django.db import IntegrityError
 import os
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileEditForm
 
@@ -15,10 +16,22 @@ def register_view(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Account created successfully! Welcome to Smart Resume Matcher.')
-            return redirect('home')
+            try:
+                user = form.save()
+                login(request, user)
+                messages.success(request, 'Account created successfully! Welcome to Smart Resume Matcher.')
+                return redirect('home')
+            except IntegrityError as e:
+                # Handle database integrity errors gracefully
+                if 'username' in str(e).lower():
+                    messages.error(request, 'An account with this email already exists. Please try logging in instead.')
+                elif 'email' in str(e).lower():
+                    messages.error(request, 'An account with this email already exists. Please try logging in instead.')
+                else:
+                    messages.error(request, 'There was an error creating your account. Please try again.')
+        else:
+            # Form validation errors will be shown in the template
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = UserRegistrationForm()
     
@@ -31,11 +44,11 @@ def login_view(request):
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
             
-            # The username could be either an email or a username
-            user = authenticate(request, username=username, password=password)
+            # Authenticate using email as username
+            user = authenticate(request, username=email, password=password)
             
             if user is not None:
                 login(request, user)
@@ -47,6 +60,8 @@ def login_view(request):
                 return redirect(next_url)
             else:
                 messages.error(request, 'Invalid email or password.')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = UserLoginForm()
     
