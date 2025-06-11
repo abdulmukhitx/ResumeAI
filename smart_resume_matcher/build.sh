@@ -2,6 +2,9 @@
 # exit on error
 set -o errexit
 
+# Move to the correct directory
+cd smart_resume_matcher
+
 # Install dependencies
 pip install -r requirements.txt
 
