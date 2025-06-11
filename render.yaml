@@ -3,7 +3,7 @@ services:
     name: smart-resume-matcher
     env: python
     buildCommand: ./build.sh
-    startCommand: ./start_gunicorn.sh
+    startCommand: ./start.sh
     disk:
       name: smart-resume-data
       mountPath: /var/data
@@ -14,41 +14,17 @@ services:
       - key: DEBUG
         value: false
       - key: ALLOWED_HOSTS
-        value: ".render.com"
-      - key: REDIS_URL
-        fromService:
-          name: smart-resume-redis
-          type: redis
-          property: connectionString
+        value: "*"
+      - key: GROQ_API_KEY
+        sync: false
       - key: PYTHON_VERSION
         value: 3.11.0
-
-  - type: worker
-    name: smart-resume-celery-worker
-    env: python
-    buildCommand: ./build.sh
-    startCommand: >
-      bash -c "if [ -d \"smart_resume_matcher\" ]; then cd smart_resume_matcher; fi && 
-      celery -A config worker --loglevel=info"
-    envVars:
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DEBUG
-        value: false
-      - key: REDIS_URL
-        fromService:
-          name: smart-resume-redis
-          type: redis
-          property: connectionString
-      - key: PYTHON_VERSION
-        value: 3.11.0
-  
-  - type: worker
-    name: smart-resume-celery-beat
-    env: python
-    buildCommand: ./build.sh
-    startCommand: >
-      bash -c "if [ -d \"smart_resume_matcher\" ]; then cd smart_resume_matcher; fi && 
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings
+      - key: PYTHONPATH
+        value: "/opt/render/project/src/smart_resume_matcher"
+      - key: DATABASE_URL
+        value: "sqlite:////var/data/db.sqlite3" 
       celery -A config beat --loglevel=info"
     envVars:
       - key: SECRET_KEY
