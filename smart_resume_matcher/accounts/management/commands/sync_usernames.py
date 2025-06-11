@@ -6,7 +6,7 @@ class Command(BaseCommand):
     help = 'Sync all user usernames with their email addresses to prevent conflicts'
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS('Starting username sync...'))
+        self.stdout.write(self.style.SUCCESS('Starting username sync...') if hasattr(self.style, 'SUCCESS') else 'Starting username sync...')
         
         updated_count = 0
         
@@ -22,8 +22,6 @@ class Command(BaseCommand):
                     )
         
         self.stdout.write(
-            self.style.SUCCESS(
-                f'Successfully synced {updated_count} users. '
-                f'Total users: {User.objects.count()}'
-            )
+            f'Successfully synced {updated_count} users. '
+            f'Total users: {User.objects.count()}'
         )
