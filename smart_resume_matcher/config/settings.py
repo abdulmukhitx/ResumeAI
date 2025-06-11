@@ -74,8 +74,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
-        'ATOMIC_REQUESTS': True,  # Wrap all requests in transactions
+        'CONN_MAX_AGE': 0,  # Don't keep connections alive to prevent locks
+        'ATOMIC_REQUESTS': False,  # Don't wrap all requests in transactions (causes locks)
+        'OPTIONS': {
+            'timeout': 20,  # Timeout for database operations (20 seconds)
+            'init_command': "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+        },
     }
 }
 

@@ -19,33 +19,49 @@ def resume_upload_view(request):
     if request.method == 'POST':
         form = ResumeUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            # Create new resume instance but don't save yet
-            resume = form.save(commit=False)
-            resume.user = request.user
-            resume.original_filename = request.FILES['file'].name
-            resume.file_size = request.FILES['file'].size
+            from django.db import transaction
+            import logging
+            logger = logging.getLogger(__name__)
             
-            # If user already has a resume, mark it as inactive
-            if user_resume:
-                user_resume.is_active = False
-                user_resume.save()
-            
-            # Save the new resume
-            resume.save()
-            
-            # Start the analysis process (in real app, this would be a Celery task)
             try:
-                analyze_resume(resume.id)
-                messages.success(request, 'Resume uploaded and analyzed successfully!')
+                with transaction.atomic():
+                    # Create new resume instance but don't save yet
+                    resume = form.save(commit=False)
+                    resume.user = request.user
+                    resume.original_filename = request.FILES['file'].name
+                    resume.file_size = request.FILES['file'].size
+                    
+                    # If user already has a resume, mark it as inactive
+                    if user_resume:
+                        user_resume.is_active = False
+                        user_resume.save()
+                    
+                    # Save the new resume
+                    resume.save()
+                
+                # Start the analysis process (in real app, this would be a Celery task)
+                # This is done outside the transaction to avoid long-running transactions
+                try:
+                    analyze_resume(resume.id)
+                    messages.success(request, 'Resume uploaded and analyzed successfully!')
+                except Exception as e:
+                    logger.error(f"Resume analysis error: {str(e)}")
+                    # Update resume status in a separate transaction
+                    try:
+                        with transaction.atomic():
+                            resume.refresh_from_db()
+                            resume.status = 'failed'
+                            resume.save()
+                    except Exception:
+                        pass  # If we can't update status, that's okay
+                    messages.error(request, 'We encountered an issue while analyzing your resume. Please try again later.')
+                
+                return redirect('profile')
+                
             except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Resume analysis error: {str(e)}")
-                resume.status = 'failed'
-                resume.save()
-                messages.error(request, 'We encountered an issue while analyzing your resume. Please try again later.')
-            
-            return redirect('profile')
+                logger.error(f"Resume upload error: {str(e)}")
+                messages.error(request, 'There was an error uploading your resume. Please try again.')
+                
     else:
         form = ResumeUploadForm()
     
@@ -61,12 +77,18 @@ def analyze_resume(resume_id):
     In a production app, this would be a Celery task.
     """
     import logging
+    from django.db import transaction
     logger = logging.getLogger(__name__)
     
-    resume = Resume.objects.get(id=resume_id)
-    resume.status = 'processing'
-    resume.analysis_started_at = timezone.now()
-    resume.save()
+    try:
+        with transaction.atomic():
+            resume = Resume.objects.select_for_update().get(id=resume_id)
+            resume.status = 'processing'
+            resume.analysis_started_at = timezone.now()
+            resume.save()
+    except Resume.DoesNotExist:
+        logger.error(f"Resume with ID {resume_id} not found")
+        return False
     
     try:
         # Initialize AI analyzer
@@ -79,23 +101,28 @@ def analyze_resume(resume_id):
             logger.error(f"Error extracting text from PDF: {e}")
             # If PDF extraction fails, set a placeholder and continue
             resume.raw_text = "Error extracting text from resume."
+        
+        # Save the raw text first
+        resume.save(update_fields=['raw_text'])
             
         # Analyze the resume - this will use fallback if AI isn't available
         analysis_results = analyzer.analyze_resume(resume.raw_text)
         
-        # Update resume with analysis results
-        resume.extracted_skills = analysis_results.get('skills', [])
-        resume.experience_level = analysis_results.get('experience_level', '')
-        resume.job_titles = analysis_results.get('job_titles', [])
-        resume.education = analysis_results.get('education', [])
-        resume.work_experience = analysis_results.get('work_experience', [])
-        resume.analysis_summary = analysis_results.get('summary', '')
-        resume.confidence_score = analysis_results.get('confidence_score', 0.0)
-        
-        # Update status
-        resume.status = 'completed'
-        resume.analysis_completed_at = timezone.now()
-        resume.save()
+        # Update resume with analysis results in a single transaction
+        with transaction.atomic():
+            resume.refresh_from_db()
+            resume.extracted_skills = analysis_results.get('skills', [])
+            resume.experience_level = analysis_results.get('experience_level', '')
+            resume.job_titles = analysis_results.get('job_titles', [])
+            resume.education = analysis_results.get('education', [])
+            resume.work_experience = analysis_results.get('work_experience', [])
+            resume.analysis_summary = analysis_results.get('summary', '')
+            resume.confidence_score = analysis_results.get('confidence_score', 0.0)
+            
+            # Update status
+            resume.status = 'completed'
+            resume.analysis_completed_at = timezone.now()
+            resume.save()
         
         # Find matching jobs - wrap in try/except to ensure process completes
         try:
@@ -107,8 +134,10 @@ def analyze_resume(resume_id):
         return True
     except Exception as e:
         logger.error(f"Resume analysis failed: {e}")
-        resume.status = 'failed'
-        resume.save()
+        with transaction.atomic():
+            resume.refresh_from_db()
+            resume.status = 'failed'
+            resume.save()
         raise e
 
 def find_matching_jobs(resume):
