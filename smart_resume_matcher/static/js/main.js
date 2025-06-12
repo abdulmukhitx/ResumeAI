@@ -1,6 +1,48 @@
 // Main JavaScript for Smart Resume Matcher
 
+// Dark theme functionality
+function initializeTheme() {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    
+    // Update toggle button icon
+    updateThemeToggleIcon(currentTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    updateThemeToggleIcon(newTheme);
+}
+
+function updateThemeToggleIcon(theme) {
+    const toggleButton = document.getElementById('theme-toggle');
+    if (toggleButton) {
+        toggleButton.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+        toggleButton.setAttribute('title', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+}
+
+// Initialize theme on page load
+initializeTheme();
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Add theme toggle button to the page
+    const themeToggle = document.createElement('button');
+    themeToggle.id = 'theme-toggle';
+    themeToggle.className = 'theme-toggle';
+    themeToggle.setAttribute('aria-label', 'Toggle dark mode');
+    themeToggle.addEventListener('click', toggleTheme);
+    document.body.appendChild(themeToggle);
+    
+    // Update icon based on current theme
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    updateThemeToggleIcon(currentTheme);
+    
     // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(tooltipTriggerEl) {
