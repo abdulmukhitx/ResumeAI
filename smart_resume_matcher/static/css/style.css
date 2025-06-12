@@ -1,5 +1,117 @@
 /* General styles for the Smart Resume Matcher application */
 
+/* Container Border Styles - 5px border radius for all containers */
+.container, .container-fluid, .container-sm, .container-md, .container-lg, .container-xl {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+}
+
+/* Card containers */
+.card {
+    border: 5px solid #dee2e6;
+    border-radius: 5px;
+}
+
+/* Form containers */
+.form-container, .form-group, .form-control {
+    border-radius: 5px;
+}
+
+.form-control {
+    border: 2px solid #ced4da;
+}
+
+/* Content containers */
+.content-container, .main-content, .sidebar {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Alert containers */
+.alert {
+    border: 3px solid;
+    border-radius: 5px;
+}
+
+/* Modal containers */
+.modal-content {
+    border: 5px solid #dee2e6;
+    border-radius: 5px;
+}
+
+/* Nav containers */
+.nav-tabs, .nav-pills {
+    border-radius: 5px;
+}
+
+.nav-tabs .nav-link {
+    border-radius: 5px 5px 0 0;
+}
+
+.nav-pills .nav-link {
+    border-radius: 5px;
+}
+
+/* Panel and section containers */
+.panel, .section, .widget {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Table containers */
+.table-container, .table-responsive {
+    border: 5px solid #dee2e6;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Button groups */
+.btn-group, .btn-toolbar {
+    border-radius: 5px;
+}
+
+/* Input groups */
+.input-group {
+    border-radius: 5px;
+}
+
+.input-group .form-control:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.input-group .form-control:last-child {
+    border-radius: 0 5px 5px 0;
+}
+
+/* List groups */
+.list-group {
+    border-radius: 5px;
+}
+
+.list-group-item:first-child {
+    border-radius: 5px 5px 0 0;
+}
+
+.list-group-item:last-child {
+    border-radius: 0 0 5px 5px;
+}
+
+/* Dropdown containers */
+.dropdown-menu {
+    border: 3px solid #dee2e6;
+    border-radius: 5px;
+}
+
+/* Progress containers */
+.progress {
+    border-radius: 5px;
+    border: 2px solid #e9ecef;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
@@ -116,4 +228,97 @@
         transform: scale(0.9);
         opacity: 0.7;
     }
+}
+
+/* Django-specific container styles */
+.django-container, .content-wrapper, .page-container {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+/* Resume and job-related containers */
+.resume-container, .job-container, .match-container {
+    border: 5px solid #d1ecf1;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+}
+
+/* Dashboard containers */
+.dashboard-card, .stats-container, .widget-container {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Authentication containers */
+.auth-container, .login-container, .register-container {
+    border: 5px solid #dee2e6;
+    border-radius: 5px;
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 500px;
+    background-color: #ffffff;
+}
+
+/* Profile and settings containers */
+.profile-container, .settings-container {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Search and filter containers */
+.search-container, .filter-container {
+    border: 5px solid #f8f9fa;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #ffffff;
+}
+
+/* Notification containers */
+.notification-container, .message-container {
+    border: 5px solid #d4edda;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Footer containers */
+.footer-container {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+/* Sidebar containers */
+.sidebar-container {
+    border: 5px solid #f8f9fa;
+    border-radius: 5px;
+    padding: 1rem;
+    background-color: #ffffff;
+}
+
+/* Header containers */
+.header-container {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Generic wrapper containers */
+.wrapper, .inner-wrapper, .content-block {
+    border: 5px solid #e9ecef;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
 }
