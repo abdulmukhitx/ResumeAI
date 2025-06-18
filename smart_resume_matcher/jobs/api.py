@@ -2,13 +2,14 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
 from django.apps import apps
+from accounts.decorators import jwt_login_required
 import html
 import re
 
 # Get the model dynamically to avoid circular imports
 Job = apps.get_model('jobs', 'Job')
 
-@login_required
+@jwt_login_required
 @require_GET
 def get_formatted_job_description(request, job_id):
     """

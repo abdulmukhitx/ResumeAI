@@ -4,52 +4,67 @@
 {% block title %}Profile - Smart Resume Matcher{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">User Profile</h5>
-            </div>
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <!-- Use the safest approach - always provide a default in case of errors -->
-                    <img src="{% firstof user.get_profile_picture_url static 'images/default-profile.png' %}" 
-                         alt="{% if user.get_profile_picture_url %}Profile Picture{% else %}Default Profile Picture{% endif %}" 
-                         class="img-fluid rounded-circle" 
-                         style="max-width: 150px;"
-                         onerror="this.src='{% static 'images/default-profile.png' %}'; this.onerror='';">
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="profile-container fade-in">
+                <div class="text-center mb-4">
+                    <div class="mb-3">
+                        <img src="{% firstof user.get_profile_picture_url %}{% static 'images/default-profile.png' %}" 
+                             alt="{% if user.get_profile_picture_url %}Profile Picture{% else %}Default Profile Picture{% endif %}" 
+                             class="img-fluid rounded-circle" 
+                             style="max-width: 150px; border: 4px solid var(--primary-color);"
+                             onerror="this.src='{% static 'images/default-profile.png' %}'; this.onerror='';">
+                    </div>
+                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                    </div>
                 </div>
-                <h4>{{ user.get_full_name }}</h4>
-                <p class="text-muted">{{ user.email }}</p>
                 
-                <div class="d-grid gap-2 mt-3">
-                    <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+                <!-- Quick Stats -->
+                <div class="mb-4">
+                    <h6 class="text-muted mb-3">Account Stats</h6>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span>Member Since</span>
+                        <span class="fw-bold">{{ user.date_joined|date:"M Y" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span>Last Login</span>
+                        <span class="fw-bold">{{ user.last_login|date:"M d, Y"|default:"Never" }}</span>
+                    </div>
+                    {% if user_resume %}
+                    <div class="d-flex justify-content-between py-2">
+                        <span>Resume Status</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Resume Information</h5>
-            </div>
-            <div class="card-body">
-                {% if user_resume %}
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5>Current Resume</h5>
-                        <div>
-                            <a href="{{ user_resume.file.url }}" class="btn btn-sm btn-outline-secondary me-2" target="_blank">
+        <div class="col-md-8">
+            <div class="profile-container fade-in">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">Resume Information</h5>
+                    {% if user_resume %}
+                        <div class="btn-group">
+                            <a href="{{ user_resume.file.url }}" class="btn btn-outline-secondary" target="_blank">
                                 <i class="fas fa-eye"></i> View
                             </a>
-                            <a href="{% url 'resume_upload' %}" class="btn btn-sm btn-outline-primary">
+                            <a href="{% url 'jwt_resume_upload' %}" class="btn btn-outline-primary">
                                 <i class="fas fa-upload"></i> Update
                             </a>
                         </div>
-                    </div>
-                    
-                    <div class="card bg-light">
-                        <div class="card-body">
+                    {% endif %}
+                </div>
+                
+                {% if user_resume %}
+                    <div class="card-body">
                             <div class="mb-3">
                                 <h6>Extracted Skills</h6>
                                 <div>
@@ -77,7 +92,7 @@
                 {% else %}
                     <div class="text-center py-4">
                         <p class="mb-3">You haven't uploaded a resume yet.</p>
-                        <a href="{% url 'resume_upload' %}" class="btn btn-primary">
+                        <a href="{% url 'jwt_resume_upload' %}" class="btn btn-primary">
                             <i class="fas fa-upload me-2"></i> Upload Resume
                         </a>
                     </div>

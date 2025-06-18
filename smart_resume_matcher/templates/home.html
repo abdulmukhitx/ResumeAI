@@ -3,109 +3,243 @@
 {% block title %}Home - Smart Resume Matcher{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-10">
-        <div class="card">
-            <div class="card-body text-center">
-                <h1 class="display-4">Welcome to Smart Resume Matcher</h1>
-                <p class="lead">Your AI-powered career assistant</p>
-                
-                {% if user.is_authenticated %}
-                    {% if has_resume %}
-                        <!-- Featured AI Job Matching Card -->
-                        <div class="card bg-light my-4">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-md-3 text-center">
-                                        <i class="fas fa-robot fa-4x text-primary mb-3"></i>
-                                        <h4>AI Job Matching</h4>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h5>Discover Your Perfect Job Match</h5>
-                                        <p>Our intelligent AI analyzes your resume and finds the jobs that best match your unique skills and experience.</p>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <a href="{% url 'ai_job_matches' %}?auto_search=true" class="btn btn-primary btn-lg">
-                                            <i class="fas fa-magic me-2"></i> Find Matches
-                                        </a>
-                                    </div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <!-- JWT Authenticated Content (Hidden by default, shown by JS) -->
+            <div id="jwt-authenticated-content" style="display: none;">
+                <div id="jwt-has-resume-content" style="display: none;">
+                    <!-- Welcome Message for JWT Users -->
+                    <div class="welcome-container fade-in">
+                        <h1 class="display-4 mb-3">Welcome back, <span id="jwt-user-name">User</span>!</h1>
+                        <p class="lead">Your AI-powered career assistant is ready to find your perfect job match</p>
+                    </div>
+                    
+                    <!-- Featured AI Job Matching Card -->
+                    <div class="card job-card fade-in">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3 text-center">
+                                    <i class="fas fa-robot fa-4x mb-3" style="color: var(--primary-color);"></i>
+                                    <h4>AI Job Matching</h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Discover Your Perfect Job Match</h5>
+                                    <p class="text-muted">Our intelligent AI analyzes your resume and finds jobs that best match your unique skills and experience across all professions.</p>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <a href="{% url 'ai_job_matches' %}?auto_search=true" class="btn btn-primary btn-lg pulse">
+                                        <i class="fas fa-magic me-2"></i> Find Matches
+                                    </a>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="my-5">
-                            <h2>Your Latest Job Matches</h2>
-                            {% if job_matches %}
-                                <div class="row mt-4">
-                                    {% for job in job_matches %}
-                                        <div class="col-md-6 mb-4">
-                                            <div class="card h-100">
-                                                <div class="card-body">
-                                                    <h5 class="card-title">{{ job.title }}</h5>
-                                                    <h6 class="card-subtitle mb-2 text-muted">{{ job.company }}</h6>
-                                                    <div class="d-flex justify-content-between my-2">
-                                                        <span class="badge bg-primary">{{ job.match_score }}% Match</span>
-                                                        <span class="badge bg-secondary">{{ job.location }}</span>
-                                                    </div>
-                                                    <p class="card-text">{{ job.description|truncatechars:150 }}</p>
-                                                    <a href="{% url 'job_detail' job.id %}" class="btn btn-primary">View Details</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                                <div class="mt-3">
-                                    <a href="{% url 'ai_job_matches' %}" class="btn btn-primary me-2">
-                                        <i class="fas fa-robot me-1"></i> AI Job Matches
-                                    </a>
-                                    <a href="{% url 'job_search' %}" class="btn btn-outline-primary">
-                                        <i class="fas fa-search me-1"></i> Manual Search
-                                    </a>
-                                </div>
-                            {% else %}
-                                <p>No job matches found yet. Let our AI find the perfect jobs for you.</p>
-                                <div>
-                                    <a href="{% url 'ai_job_matches' %}?auto_search=true" class="btn btn-primary me-2">
-                                        <i class="fas fa-magic me-1"></i> Find AI Matches
-                                    </a>
-                                    <a href="{% url 'job_search' %}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-search me-1"></i> Manual Search
-                                    </a>
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info my-4" role="alert">
-                            <h4 class="alert-heading">Complete Your Profile!</h4>
-                            <p>Please upload your resume to get personalized job recommendations.</p>
-                            <hr>
-                            <div class="d-grid gap-2 col-6 mx-auto">
-                                <a href="{% url 'resume_upload' %}" class="btn btn-primary btn-lg">Upload Resume</a>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <div class="my-5">
-                        <p>Sign up to find jobs that match your skills and experience.</p>
-                        <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
-                            <a href="{% url 'register' %}" class="btn btn-primary">Create an Account</a>
-                            <a href="{% url 'login' %}" class="btn btn-outline-secondary">Already have an account? Login</a>
                         </div>
                     </div>
-                {% endif %}
+                    
+                    <!-- Job Matches Section for JWT Users -->
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <h2 class="mb-4">Your Latest Job Matches</h2>
+                            <div id="jwt-job-matches-container">
+                                <!-- Job matches will be loaded here via API -->
+                                <div class="job-card text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-3">Loading your job matches...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="jwt-no-resume-content" style="display: none;">
+                    <!-- Complete Profile Message for JWT Users -->
+                    <div class="welcome-container fade-in">
+                        <h1 class="display-4 mb-3">Welcome to Smart Resume Matcher</h1>
+                        <p class="lead">Your AI-powered career assistant</p>
+                    </div>
+                    
+                    <div class="card job-card fade-in">
+                        <div class="card-body text-center">
+                            <i class="fas fa-upload fa-4x mb-4" style="color: var(--primary-color);"></i>
+                            <h3 class="mb-3">Complete Your Profile!</h3>
+                            <p class="lead mb-4">Please upload your resume to get personalized job recommendations.</p>
+                            <a href="{% url 'jwt_resume_upload' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-file-upload me-2"></i> Upload Resume
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Career Tips Section for JWT Users -->
+                <div class="job-card mt-5 fade-in">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-lightbulb fa-2x me-3" style="color: var(--warning-color);"></i>
+                        <h3 class="mb-0">AI Career Tips</h3>
+                    </div>
+                    <div class="alert alert-info border-0">
+                        <p class="mb-0" id="jwt-career-tip">{{ ai_tip }}</p>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        {% if user.is_authenticated and has_resume %}
-        <div class="card mt-4">
-            <div class="card-body">
-                <h3>AI Career Tips</h3>
-                <div class="card-text">
-                    <p>{{ ai_tip }}</p>
+            
+            <!-- Session-based Authentication (LEGACY - REMOVED FOR JWT ONLY APPROACH) -->
+            
+            <!-- JWT No-Auth Content (Default for non-authenticated users) -->
+            <div id="jwt-no-auth-content">
+                <div class="welcome-container fade-in">
+                    <h1 class="display-4 mb-3">Welcome to Smart Resume Matcher</h1>
+                    <p class="lead">Your AI-powered career assistant for ALL professions</p>
+                </div>
+                
+                <div class="job-card text-center fade-in">
+                    <i class="fas fa-briefcase fa-4x mb-4" style="color: var(--primary-color);"></i>
+                    <h3 class="mb-3">Find Your Perfect Job Match</h3>
+                    <p class="lead mb-4">Join thousands of professionals who found their dream jobs using our AI-powered matching system.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Create Account</a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">Login</a>
+                    </div>
+                </div>
+                
+                <!-- Features Section -->
+                <div class="row mt-5">
+                    <div class="col-md-4 mb-4">
+                        <div class="job-card text-center">
+                            <i class="fas fa-brain fa-3x mb-3" style="color: var(--primary-color);"></i>
+                            <h5>AI-Powered Matching</h5>
+                            <p class="text-muted">Advanced algorithms analyze your skills and match you with perfect opportunities</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="job-card text-center">
+                            <i class="fas fa-globe fa-3x mb-3" style="color: var(--success-color);"></i>
+                            <h5>All Professions</h5>
+                            <p class="text-muted">From healthcare to technology, find opportunities across all industries</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="job-card text-center">
+                            <i class="fas fa-clock fa-3x mb-3" style="color: var(--info-color);"></i>
+                            <h5>Real-time Results</h5>
+                            <p class="text-muted">Get instant job recommendations updated in real-time</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize JWT authentication check for home page
+    initializeHomePageAuth();
+});
+
+function initializeHomePageAuth() {
+    // Wait for auth manager to be available
+    const checkAuthManager = () => {
+        if (typeof window.authManager !== 'undefined') {
+            handleHomePageAuthentication();
+        } else {
+            setTimeout(checkAuthManager, 100);
+        }
+    };
+    
+    checkAuthManager();
+}
+
+function handleHomePageAuthentication() {
+    const isAuthenticated = window.authManager.isAuthenticated();
+    const userData = window.authManager.getUserData();
+    
+    // Show/hide content based on authentication status
+    const jwtAuthContent = document.getElementById('jwt-authenticated-content');
+    const jwtNoAuthContent = document.getElementById('jwt-no-auth-content');
+    const jwtHasResumeContent = document.getElementById('jwt-has-resume-content');
+    const jwtNoResumeContent = document.getElementById('jwt-no-resume-content');
+    
+    if (isAuthenticated && userData) {
+        console.log('User is authenticated via JWT:', userData);
+        
+        // Show authenticated content
+        if (jwtAuthContent) jwtAuthContent.style.display = 'block';
+        if (jwtNoAuthContent) jwtNoAuthContent.style.display = 'none';
+        
+        // Check if user has resume (you can extend this logic)
+        const hasResume = userData.latest_resume && userData.latest_resume.id;
+        
+        if (hasResume) {
+            if (jwtHasResumeContent) jwtHasResumeContent.style.display = 'block';
+            if (jwtNoResumeContent) jwtNoResumeContent.style.display = 'none';
+            
+            // Load job matches
+            loadJobMatches();
+        } else {
+            if (jwtHasResumeContent) jwtHasResumeContent.style.display = 'none';
+            if (jwtNoResumeContent) jwtNoResumeContent.style.display = 'block';
+        }
+        
+        // Update profile information
+        updateProfileDisplay(userData);
+    } else {
+        console.log('User is not authenticated');
+        
+        // Show non-authenticated content
+        if (jwtAuthContent) jwtAuthContent.style.display = 'none';
+        if (jwtNoAuthContent) jwtNoAuthContent.style.display = 'block';
+    }
+}
+
+function updateProfileDisplay(userData) {
+    // Update any profile displays on the home page
+    const userNameElements = document.querySelectorAll('[data-user-name]');
+    userNameElements.forEach(element => {
+        if (userData.profile && userData.profile.full_name) {
+            element.textContent = userData.profile.full_name;
+        } else {
+            element.textContent = userData.first_name + ' ' + userData.last_name;
+        }
+    });
+}
+
+async function loadJobMatches() {
+    // Load job matches via API for authenticated users
+    const jobMatchesContainer = document.getElementById('jwt-job-matches-container');
+    if (!jobMatchesContainer) return;
+    
+    try {
+        // You can implement this API call later
+        jobMatchesContainer.innerHTML = `
+            <div class="job-card text-center">
+                <p class="text-muted">Job matching feature coming soon!</p>
+                <a href="/jobs/" class="btn btn-outline-primary">Browse Jobs</a>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error loading job matches:', error);
+        jobMatchesContainer.innerHTML = `
+            <div class="job-card text-center">
+                <p class="text-danger">Failed to load job matches</p>
+                <a href="/jobs/" class="btn btn-outline-primary">Browse Jobs</a>
+            </div>
+        `;
+    }
+}
+
+// Listen for authentication events
+window.addEventListener('auth:login', function(event) {
+    console.log('Home page: User logged in, updating content...');
+    handleHomePageAuthentication();
+});
+
+window.addEventListener('auth:logout', function(event) {
+    console.log('Home page: User logged out, updating content...');
+    handleHomePageAuthentication();
+});
+</script>
 {% endblock %}

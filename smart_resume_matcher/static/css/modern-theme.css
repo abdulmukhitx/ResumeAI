@@ -1,0 +1,987 @@
+/* Smart Resume Matcher - Modern Theme System */
+
+/* JWT Authentication Failsafe - Force Hide Django Session Auth */
+[data-auth-hide] {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* CSS Variables for Light Theme (Default) */
+:root {
+    /* Colors */
+    --primary-color: #8c43ff;
+    --primary-dark: #7938d6;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    
+    /* Backgrounds */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #e9ecef;
+    --bg-dark: #343a40;
+    
+    /* Text Colors */
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #868e96;
+    --text-white: #ffffff;
+    
+    /* Borders */
+    --border-color: #dee2e6;
+    --border-light: #e9ecef;
+    --border-dark: #adb5bd;
+    
+    /* Shadows */
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    
+    /* Border Radius */
+    --border-radius: 0.375rem;
+    --border-radius-lg: 0.5rem;
+    --border-radius-xl: 1rem;
+    
+    /* Transitions */
+    --transition: all 0.15s ease-in-out;
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+    /* Colors - Enhanced for beauty */
+    --primary-color: #9c5dff;
+    --primary-dark: #8547e6;
+    
+    /* Beautiful gradient backgrounds */
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #262626;
+    --bg-tertiary: #333333;
+    --bg-dark: #0f0f0f;
+    
+    /* Enhanced text colors for better readability */
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-muted: #b0b0b0;
+    
+    /* Beautiful borders */
+    --border-color: #404040;
+    --border-light: #4d4d4d;
+    --border-dark: #555555;
+    
+    /* Enhanced shadows for depth */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Beautiful gradient body background */
+[data-theme="dark"] body {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+/* Beautiful gradient body background */
+[data-theme="dark"] body {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+body {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
+    color: var(--text-primary);
+    transition: var(--transition);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Beautiful container styling */
+[data-theme="dark"] .container {
+    background: transparent !important;
+}
+
+/* Enhanced AI Job Matching Section */
+[data-theme="dark"] .welcome-container {
+    background: linear-gradient(135deg, var(--primary-color), #7938d6, #5d2db3) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 32px rgba(156, 93, 255, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Beautiful Resume Profile Sidebar */
+[data-theme="dark"] .profile-container {
+    background: linear-gradient(145deg, var(--bg-primary), #1e1e1e) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Enhanced search section */
+[data-theme="dark"] .search-container,
+[data-theme="dark"] .ai-powered-section {
+    background: linear-gradient(135deg, var(--bg-primary), #222222) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Navigation */
+.navbar {
+    background-color: var(--bg-dark) !important;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar-brand {
+    color: var(--text-white) !important;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--primary-color) !important;
+    transform: translateY(-1px);
+}
+
+.navbar-toggler {
+    border: none;
+    padding: 0.25rem 0.5rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* Main Content */
+.content {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+/* Cards */
+.card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    background-color: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+}
+
+.card-body {
+    color: var(--text-primary);
+    padding: 1.25rem;
+}
+
+.card-footer {
+    background-color: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.75rem 1.25rem;
+}
+
+/* Bootstrap Text Color Overrides for Dark Mode */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.text-primary {
+    color: var(--text-primary) !important;
+}
+
+/* Profile specific fixes */
+.profile-container .text-muted,
+.profile-container p.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.border-bottom {
+    border-bottom-color: var(--border-color) !important;
+}
+
+/* Job listing area fixes */
+.job-opportunities-section,
+.ai-matched-jobs {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.job-opportunities-section .card,
+.ai-matched-jobs .card {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Fix for job description text */
+.job-card p,
+.job-card .text-muted,
+.card p,
+.card .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Fix user email and account stats in profile */
+.profile-container h4,
+.profile-container p,
+.profile-container span {
+    color: var(--text-primary) !important;
+}
+
+.profile-container .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Force Bootstrap color classes to use our theme */
+[data-theme="dark"] .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+/* Beautiful Enhanced Buttons */
+[data-theme="dark"] .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #7938d6) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 12px 24px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    font-size: 0.85rem !important;
+    box-shadow: 0 4px 15px rgba(156, 93, 255, 0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background: linear-gradient(135deg, #7938d6, var(--primary-color)) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(156, 93, 255, 0.6) !important;
+}
+
+[data-theme="dark"] .btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4) !important;
+}
+
+[data-theme="dark"] .btn-outline-primary {
+    border: 2px solid var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    background: transparent !important;
+    border-radius: 25px !important;
+    padding: 10px 22px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--primary-color), #7938d6) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(156, 93, 255, 0.4) !important;
+}
+
+/* Beautiful Form Controls */
+[data-theme="dark"] .form-control {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    color: var(--text-primary) !important;
+    padding: 12px 16px !important;
+    font-size: 0.95rem !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+[data-theme="dark"] .form-control:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(156, 93, 255, 0.15) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8;
+}
+
+/* Forms */
+.form-control {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    background-color: var(--bg-primary);
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 0.2rem rgba(140, 67, 255, 0.25);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-label {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-select {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(140, 67, 255, 0.25);
+}
+
+/* Tables */
+.table {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table thead th {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.table tbody tr {
+    background-color: var(--bg-primary);
+}
+
+.table tbody tr:hover {
+    background-color: var(--bg-secondary);
+}
+
+/* Alerts */
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+}
+
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--success-color);
+    border-left: 4px solid var(--success-color);
+}
+
+.alert-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: var(--warning-color);
+    border-left: 4px solid var(--warning-color);
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+    border-left: 4px solid var(--danger-color);
+}
+
+.alert-info {
+    background-color: rgba(23, 162, 184, 0.1);
+    color: var(--info-color);
+    border-left: 4px solid var(--info-color);
+}
+
+/* Skills Badges */
+.skill-badge {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    margin: 0.125rem;
+    background-color: var(--primary-color);
+    color: var(--text-white);
+    border-radius: var(--border-radius-xl);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.skill-badge:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.skill-badge.missing {
+    background-color: var(--danger-color);
+    color: var(--text-white);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    padding: 2rem 0;
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    background-color: var(--primary-color);
+    color: var(--text-white);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+}
+
+.theme-toggle:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Containers */
+.container,
+.container-fluid,
+.container-sm,
+.container-md,
+.container-lg,
+.container-xl {
+    transition: var(--transition);
+}
+
+/* Modals */
+.modal-content {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.dropdown-item:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Progress */
+.progress {
+    background-color: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+}
+
+.progress-bar {
+    background-color: var(--primary-color);
+    transition: width 1s ease-in-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-dark);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .theme-toggle {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .content {
+        padding: 1rem 0;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Enhanced Animation Utilities */
+.fade-in {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(156, 93, 255, 0.7);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 10px rgba(156, 93, 255, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(156, 93, 255, 0);
+    }
+}
+
+/* Beautiful floating animation for cards */
+[data-theme="dark"] .job-card,
+[data-theme="dark"] .card {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+/* Glassmorphism effect for modern look */
+[data-theme="dark"] .glassmorphism {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
+}
+
+/* Enhanced navbar with glassmorphism */
+[data-theme="dark"] .navbar {
+    background: rgba(15, 15, 15, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Beautiful theme toggle button */
+[data-theme="dark"] .theme-toggle {
+    background: linear-gradient(135deg, var(--primary-color), #7938d6) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+    background: linear-gradient(135deg, #7938d6, var(--primary-color)) !important;
+    transform: scale(1.1) rotate(15deg) !important;
+    box-shadow: 0 8px 30px rgba(156, 93, 255, 0.5) !important;
+}
+
+/* Special page styles */
+.auth-container {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: var(--bg-primary);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.welcome-container {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: var(--text-white);
+    border-radius: var(--border-radius-xl);
+    margin: 2rem 0;
+}
+
+.profile-container {
+    background-color: var(--bg-primary);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.job-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
+}
+
+.job-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.match-score {
+    background: linear-gradient(135deg, var(--success-color), #20c997);
+    color: var(--text-white);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-xl);
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Print styles */
+@media print {
+    .theme-toggle,
+    .navbar,
+    .footer {
+        display: none !important;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+}
+
+/* Additional Dark Mode Fixes */
+[data-theme="dark"] {
+    /* Force any remaining white backgrounds to use theme colors */
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .bg-white {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: var(--bg-secondary) !important;
+}
+
+/* Specific fixes for job matching area */
+[data-theme="dark"] .ai-matched-jobs,
+[data-theme="dark"] .job-opportunities-section,
+[data-theme="dark"] .resume-profile {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix any remaining black text issues */
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] div {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .lead {
+    color: var(--text-secondary) !important;
+}
+
+/* Bootstrap Badge and Background Overrides for Dark Mode */
+[data-theme="dark"] .bg-light {
+    background-color: var(--bg-tertiary) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .badge.bg-light {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .badge.bg-light.text-dark {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .badge.bg-light.text-success {
+    background-color: var(--success-color) !important;
+    color: var(--text-white) !important;
+}
+
+/* Fix for rounded icon backgrounds */
+[data-theme="dark"] .bg-light.rounded-circle {
+    background-color: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Comprehensive text color fixes for dark mode */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .card-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .fw-bold {
+    color: var(--text-primary) !important;
+}
+
+/* Fix any remaining white/light backgrounds */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-transparent {
+    background-color: var(--bg-primary) !important;
+}
+
+/* Ensure job card content is visible */
+[data-theme="dark"] .job-card h5,
+[data-theme="dark"] .job-card h6,
+[data-theme="dark"] .job-card p,
+[data-theme="dark"] .job-card span {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .job-card .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Bootstrap List Group Dark Mode Fixes */
+[data-theme="dark"] .list-group {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .list-group-item:hover,
+[data-theme="dark"] .list-group-item:focus {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item-action {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item-action:hover,
+[data-theme="dark"] .list-group-item-action:focus {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Job Container Specific Fixes */
+[data-theme="dark"] .card.shadow {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .card-body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Job Match Badge Fixes */
+[data-theme="dark"] .badge.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--text-white) !important;
+}
+
+/* Refined Dark Mode - Job Container Specific Fixes */
+[data-theme="dark"] .list-group-item-action {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .list-group-item-action:hover {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--primary-color) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(156, 93, 255, 0.15);
+}
+
+/* Beautiful Card Styling for Job Listings */
+[data-theme="dark"] .card {
+    background: linear-gradient(145deg, var(--bg-primary), #1e1e1e) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    color: var(--text-primary) !important;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .card:hover {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 8px 30px rgba(156, 93, 255, 0.2) !important;
+    transform: translateY(-3px);
+}
+
+[data-theme="dark"] .card-header {
+    background: linear-gradient(135deg, var(--bg-tertiary), #2a2a2a) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+[data-theme="dark"] .card-body {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+}
+
+/* Job Match Badges - Beautiful Styling */
+[data-theme="dark"] .badge {
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    font-size: 0.7rem !important;
+    padding: 6px 12px !important;
+}
+
+[data-theme="dark"] .match-score,
+[data-theme="dark"] .badge.bg-success {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3) !important;
+}
+
+[data-theme="dark"] .badge.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), #7938d6) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(156, 93, 255, 0.3) !important;
+}
+
+/* Aesthetic Job Title and Company Styling */
+[data-theme="dark"] .job-card h5,
+[data-theme="dark"] .list-group-item h5 {
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+}
+
+[data-theme="dark"] .job-card h6,
+[data-theme="dark"] .list-group-item h6 {
+    color: var(--primary-color) !important;
+    font-weight: 600 !important;
+}
+
+/* Beautiful Skill Badges */
+[data-theme="dark"] .skill-badge,
+[data-theme="dark"] .badge.bg-light {
+    background: linear-gradient(135deg, var(--bg-tertiary), #3a3a3a) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 15px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .skill-badge:hover,
+[data-theme="dark"] .badge.bg-light:hover {
+    background: linear-gradient(135deg, var(--primary-color), #7938d6) !important;
+    color: white !important;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(156, 93, 255, 0.3) !important;
+}

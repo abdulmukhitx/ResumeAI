@@ -11,65 +11,12 @@ from jobs.services import JobMatcher
 Resume = apps.get_model('resumes', 'Resume')
 Job = apps.get_model('jobs', 'Job')
 
-@login_required
 def resume_upload_view(request):
-    # Check if user already has a resume
-    user_resume = Resume.objects.filter(user=request.user, is_active=True).order_by('-created_at').first()
-    
-    if request.method == 'POST':
-        form = ResumeUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            from django.db import transaction
-            import logging
-            logger = logging.getLogger(__name__)
-            
-            try:
-                with transaction.atomic():
-                    # Create new resume instance but don't save yet
-                    resume = form.save(commit=False)
-                    resume.user = request.user
-                    resume.original_filename = request.FILES['file'].name
-                    resume.file_size = request.FILES['file'].size
-                    
-                    # If user already has a resume, mark it as inactive
-                    if user_resume:
-                        user_resume.is_active = False
-                        user_resume.save()
-                    
-                    # Save the new resume
-                    resume.save()
-                
-                # Start the analysis process (in real app, this would be a Celery task)
-                # This is done outside the transaction to avoid long-running transactions
-                try:
-                    analyze_resume(resume.id)
-                    messages.success(request, 'Resume uploaded and analyzed successfully!')
-                except Exception as e:
-                    logger.error(f"Resume analysis error: {str(e)}")
-                    # Update resume status in a separate transaction
-                    try:
-                        with transaction.atomic():
-                            resume.refresh_from_db()
-                            resume.status = 'failed'
-                            resume.save()
-                    except Exception:
-                        pass  # If we can't update status, that's okay
-                    messages.error(request, 'We encountered an issue while analyzing your resume. Please try again later.')
-                
-                return redirect('profile')
-                
-            except Exception as e:
-                logger.error(f"Resume upload error: {str(e)}")
-                messages.error(request, 'There was an error uploading your resume. Please try again.')
-                
-    else:
-        form = ResumeUploadForm()
-    
-    context = {
-        'form': form,
-        'user_resume': user_resume
-    }
-    return render(request, 'resumes/upload.html', context)
+    """
+    Legacy resume upload view - redirects to JWT-compatible version
+    This prevents infinite redirect loops by immediately redirecting to JWT URL
+    """
+    return redirect('/jwt-resume-upload/')
 
 def analyze_resume(resume_id):
     """

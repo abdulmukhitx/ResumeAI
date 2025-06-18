@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.apps import apps
 from .services import HHApiClient
 from .job_matcher import JobMatcher
+from accounts.decorators import jwt_login_required
 
 # Dynamically load models to avoid circular imports
 Resume = apps.get_model('resumes', 'Resume')
@@ -14,7 +15,7 @@ Job = apps.get_model('jobs', 'Job')
 JobApplication = apps.get_model('jobs', 'JobApplication')
 JobSearch = apps.get_model('jobs', 'JobSearch')
 
-@login_required
+@jwt_login_required
 def job_list_view(request):
     """View to display all jobs"""
     # Get latest user resume
@@ -22,7 +23,7 @@ def job_list_view(request):
     
     if not user_resume:
         messages.warning(request, "Please upload your resume to see job matches.")
-        return redirect('resume_upload')
+        return redirect('jwt_resume_upload')
     
     # Get all jobs with their match scores
     job_matches = JobMatch.objects.filter(resume=user_resume).select_related('job')
@@ -54,7 +55,7 @@ def job_list_view(request):
     }
     return render(request, 'jobs/job_list.html', context)
 
-@login_required
+@jwt_login_required
 def ai_job_matches_view(request):
     """View to display AI-powered job matches based on resume analysis"""
     # Get latest user resume
@@ -62,7 +63,7 @@ def ai_job_matches_view(request):
     
     if not user_resume:
         messages.warning(request, "Please upload your resume to see AI job matches.")
-        return redirect('resume_upload')
+        return redirect('jwt_resume_upload')
     
     # Initialize variables
     jobs = []
@@ -149,7 +150,7 @@ def ai_job_matches_view(request):
     
     return render(request, 'jobs/ai_job_matches.html', context)
 
-@login_required
+@jwt_login_required
 def job_search_view(request):
     """View to search for jobs"""
     # Get user's resume
@@ -157,7 +158,7 @@ def job_search_view(request):
     
     if not user_resume:
         messages.warning(request, "Please upload your resume to search for jobs.")
-        return redirect('resume_upload')
+        return redirect('jwt_resume_upload')
     
     # Initialize search results
     jobs = []
@@ -348,7 +349,7 @@ def job_search_view(request):
     }
     return render(request, 'jobs/job_search.html', context)
 
-@login_required
+@jwt_login_required
 def job_detail_view(request, job_id):
     """View job details"""
     job = get_object_or_404(Job, id=job_id)
@@ -370,7 +371,7 @@ def job_detail_view(request, job_id):
     }
     return render(request, 'jobs/job_detail.html', context)
 
-@login_required
+@jwt_login_required
 def job_application_view(request, job_id):
     """Apply for a job"""
     job = get_object_or_404(Job, id=job_id)
@@ -385,7 +386,7 @@ def job_application_view(request, job_id):
     user_resume = Resume.objects.filter(user=request.user, is_active=True).first()
     if not user_resume:
         messages.error(request, "You need to upload a resume before applying for jobs.")
-        return redirect('resume_upload')
+        return redirect('jwt_resume_upload')
     
     # Get match score if available
     try:

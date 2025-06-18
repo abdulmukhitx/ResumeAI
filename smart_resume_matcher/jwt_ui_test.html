@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Auth UI Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+        }
+        .auth-show { color: green; }
+        .auth-hide { color: red; }
+        button { 
+            margin: 5px; 
+            padding: 10px 15px; 
+            border: none; 
+            border-radius: 3px; 
+            cursor: pointer; 
+        }
+        .btn-login { background: #007bff; color: white; }
+        .btn-logout { background: #dc3545; color: white; }
+        .btn-test { background: #28a745; color: white; }
+        .status { 
+            font-weight: bold; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 3px; 
+        }
+        .status.authenticated { background: #d4edda; color: #155724; }
+        .status.not-authenticated { background: #f8d7da; color: #721c24; }
+        .nav-element { 
+            padding: 5px 10px; 
+            margin: 5px; 
+            border: 1px solid #ccc; 
+            border-radius: 3px; 
+            display: inline-block;
+        }
+        [data-jwt-auth] { border-color: green; }
+        [data-jwt-no-auth] { border-color: red; }
+    </style>
+</head>
+<body>
+    <h1>JWT Authentication UI Test</h1>
+    
+    <div class="test-section">
+        <h3>Authentication Status</h3>
+        <div id="auth-status" class="status">Loading...</div>
+        <div id="user-info"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Actions</h3>
+        <button id="btn-login" class="btn-login">Test Login</button>
+        <button id="btn-logout" class="btn-logout">Test Logout</button>
+        <button id="btn-refresh" class="btn-test">Refresh UI</button>
+        <button id="btn-clear" class="btn-test">Clear Storage</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Navigation Elements Test</h3>
+        <p>These elements should show/hide based on authentication:</p>
+        
+        <div class="nav-element" data-jwt-auth style="display: none;">
+            🔐 Authenticated Only Content
+        </div>
+        
+        <div class="nav-element" data-jwt-no-auth>
+            🚫 Non-Authenticated Only Content
+        </div>
+        
+        <div class="nav-element" data-jwt-auth style="display: none;">
+            👤 User: <span id="user-name">Not Set</span>
+        </div>
+        
+        <div class="nav-element" data-jwt-auth style="display: none;">
+            📧 Email: <span id="user-email">Not Set</span>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Console Log</h3>
+        <div id="console-log" style="background: #f8f9fa; padding: 10px; height: 200px; overflow-y: scroll; font-family: monospace; font-size: 12px;"></div>
+    </div>
+
+    <!-- Load JWT Auth Scripts -->
+    <script src="/static/js/jwt_auth_clean.js"></script>
+    
+    <script>
+        // Console logging to UI
+        const consoleDiv = document.getElementById('console-log');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function logToUI(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            consoleDiv.innerHTML += `<div style="color: ${type === 'error' ? 'red' : type === 'warn' ? 'orange' : 'black'};">[${timestamp}] ${type.toUpperCase()}: ${message}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        console.log = (...args) => { originalLog(...args); logToUI('log', ...args); };
+        console.error = (...args) => { originalError(...args); logToUI('error', ...args); };
+        console.warn = (...args) => { originalWarn(...args); logToUI('warn', ...args); };
+        
+        // Test functions
+        function updateAuthStatus() {
+            const statusDiv = document.getElementById('auth-status');
+            const userInfoDiv = document.getElementById('user-info');
+            
+            if (window.authManager) {
+                const isAuth = window.authManager.isAuthenticated();
+                const user = window.authManager.getCurrentUser();
+                
+                statusDiv.textContent = isAuth ? 'AUTHENTICATED' : 'NOT AUTHENTICATED';
+                statusDiv.className = `status ${isAuth ? 'authenticated' : 'not-authenticated'}`;
+                
+                if (isAuth && user) {
+                    userInfoDiv.innerHTML = `
+                        <strong>User Data:</strong><br>
+                        Email: ${user.email || 'N/A'}<br>
+                        Name: ${user.first_name || user.username || 'N/A'}<br>
+                        ID: ${user.id || 'N/A'}
+                    `;
+                } else {
+                    userInfoDiv.innerHTML = '<em>No user data available</em>';
+                }
+                
+                // Test navigation update
+                window.authManager.updateNavigation();
+                
+                console.log('Auth Status Updated:', { isAuth, user });
+            } else {
+                statusDiv.textContent = 'AUTH MANAGER NOT FOUND';
+                statusDiv.className = 'status not-authenticated';
+                console.error('window.authManager not found!');
+            }
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            
+            // Initial status update
+            setTimeout(() => {
+                updateAuthStatus();
+            }, 500);
+            
+            // Button event listeners
+            document.getElementById('btn-login').addEventListener('click', async function() {
+                console.log('Testing login...');
+                try {
+                    if (!window.authManager) {
+                        throw new Error('Auth manager not available');
+                    }
+                    
+                    const result = await window.authManager.login('testuser@example.com', 'testpass123');
+                    console.log('Login result:', result);
+                    updateAuthStatus();
+                } catch (error) {
+                    console.error('Login test failed:', error);
+                }
+            });
+            
+            document.getElementById('btn-logout').addEventListener('click', async function() {
+                console.log('Testing logout...');
+                try {
+                    if (!window.authManager) {
+                        throw new Error('Auth manager not available');
+                    }
+                    
+                    await window.authManager.logout();
+                    console.log('Logout successful');
+                    updateAuthStatus();
+                } catch (error) {
+                    console.error('Logout test failed:', error);
+                }
+            });
+            
+            document.getElementById('btn-refresh').addEventListener('click', function() {
+                console.log('Refreshing UI...');
+                updateAuthStatus();
+            });
+            
+            document.getElementById('btn-clear').addEventListener('click', function() {
+                console.log('Clearing storage...');
+                localStorage.clear();
+                updateAuthStatus();
+            });
+            
+            // Auth event listeners
+            window.addEventListener('auth:login', function(event) {
+                console.log('AUTH:LOGIN event received:', event.detail);
+                updateAuthStatus();
+            });
+            
+            window.addEventListener('auth:logout', function(event) {
+                console.log('AUTH:LOGOUT event received:', event.detail);
+                updateAuthStatus();
+            });
+        });
+        
+        console.log('JWT Auth UI Test Page Loaded');
+    </script>
+</body>
+</html>

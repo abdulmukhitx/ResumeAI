@@ -52,8 +52,8 @@ class Job(models.Model):
     
     # Job details
     description = models.TextField()
-    requirements = models.TextField(blank=True)
-    responsibilities = models.TextField(blank=True)
+    requirements = models.TextField(blank=True, null=True, default='')
+    responsibilities = models.TextField(blank=True, null=True, default='')
     
     # Location and salary
     location = models.CharField(max_length=200)
@@ -70,8 +70,8 @@ class Job(models.Model):
     optional_skills = models.JSONField(default=list, blank=True)
     
     # URLs and metadata
-    hh_url = models.URLField()
-    published_at = models.DateTimeField()
+    hh_url = models.URLField(blank=True, default='')
+    published_at = models.DateTimeField(default=timezone.now)
     
     # Our metadata
     created_at = models.DateTimeField(auto_now_add=True)

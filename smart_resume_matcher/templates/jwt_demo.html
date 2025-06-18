@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}JWT Authentication Demo - Smart Resume Matcher{% endblock %}
+
+{% block extra_css %}
+<style>
+    .demo-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .endpoint-card {
+        margin-bottom: 2rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+    }
+    
+    .endpoint-header {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    
+    .endpoint-body {
+        padding: 1.5rem;
+    }
+    
+    .method-badge {
+        font-size: 0.75rem;
+        font-weight: bold;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        margin-right: 0.5rem;
+    }
+    
+    .method-post { background-color: #28a745; color: white; }
+    .method-get { background-color: #007bff; color: white; }
+    
+    .response-area {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        font-family: monospace;
+        font-size: 0.875rem;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .auth-status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        max-width: 300px;
+    }
+    
+    .token-display {
+        word-break: break-all;
+        font-size: 0.75rem;
+        background-color: #f8f9fa;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="demo-container">
+    <!-- Authentication Status -->
+    <div id="authStatus" class="auth-status">
+        <div class="alert alert-info" role="alert">
+            <h6 class="mb-2">🔐 Authentication Status</h6>
+            <div id="authStatusContent">Checking...</div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">🚀 JWT Authentication Demo</h1>
+            <p class="lead">Interactive demonstration of all JWT authentication endpoints</p>
+        </div>
+    </div>
+    
+    <!-- Quick Login -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <h4 class="mb-0">
+                <span class="method-badge method-post">POST</span>
+                Quick Login Test
+            </h4>
+        </div>
+        <div class="endpoint-body">
+            <p>Use the test credentials to quickly authenticate and test all endpoints.</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="quickEmail" value="jwt_test@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" id="quickPassword" value="TestPassword123">
+                    </div>
+                    <button class="btn btn-primary" onclick="quickLogin()">🔑 Quick Login</button>
+                    <button class="btn btn-outline-secondary ms-2" onclick="quickLogout()">🚪 Logout</button>
+                </div>
+                <div class="col-md-6">
+                    <h6>Response:</h6>
+                    <div id="quickLoginResponse" class="response-area">Click "Quick Login" to test...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Token Information -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <h4 class="mb-0">📋 Current Tokens</h4>
+        </div>
+        <div class="endpoint-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Access Token:</h6>
+                    <div id="accessTokenDisplay" class="token-display">No token</div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Refresh Token:</h6>
+                    <div id="refreshTokenDisplay" class="token-display">No token</div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-info btn-sm" onclick="updateTokenDisplay()">🔄 Refresh Display</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- API Endpoints Testing -->
+    <div class="row">
+        <!-- Token Verification -->
+        <div class="col-md-6">
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <h5 class="mb-0">
+                        <span class="method-badge method-post">POST</span>
+                        /api/auth/token/verify/
+                    </h5>
+                </div>
+                <div class="endpoint-body">
+                    <p>Verify if the current access token is valid.</p>
+                    <button class="btn btn-outline-primary" onclick="testTokenVerify()">Test Verify</button>
+                    <div id="verifyResponse" class="response-area mt-3">Click "Test Verify" to check token...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Profile -->
+        <div class="col-md-6">
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <h5 class="mb-0">
+                        <span class="method-badge method-get">GET</span>
+                        /api/auth/user/
+                    </h5>
+                </div>
+                <div class="endpoint-body">
+                    <p>Get current authenticated user's profile data.</p>
+                    <button class="btn btn-outline-primary" onclick="testUserProfile()">Get Profile</button>
+                    <div id="profileResponse" class="response-area mt-3">Click "Get Profile" to fetch user data...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Token Refresh -->
+        <div class="col-md-6">
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <h5 class="mb-0">
+                        <span class="method-badge method-post">POST</span>
+                        /api/auth/token/refresh/
+                    </h5>
+                </div>
+                <div class="endpoint-body">
+                    <p>Refresh the access token using the refresh token.</p>
+                    <button class="btn btn-outline-success" onclick="testTokenRefresh()">Refresh Token</button>
+                    <div id="refreshResponse" class="response-area mt-3">Click "Refresh Token" to get new tokens...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Verify -->
+        <div class="col-md-6">
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <h5 class="mb-0">
+                        <span class="method-badge method-get">GET</span>
+                        /api/auth/verify/
+                    </h5>
+                </div>
+                <div class="endpoint-body">
+                    <p>Verify token and get user data in one call.</p>
+                    <button class="btn btn-outline-info" onclick="testEnhancedVerify()">Enhanced Verify</button>
+                    <div id="enhancedVerifyResponse" class="response-area mt-3">Click "Enhanced Verify" to test...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Protected Endpoint Test -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <h4 class="mb-0">
+                🛡️ Protected Endpoint Test
+            </h4>
+        </div>
+        <div class="endpoint-body">
+            <p>Test making authenticated requests to protected endpoints using the JWT authentication system.</p>
+            <div class="row">
+                <div class="col-md-4">
+                    <select class="form-select" id="protectedEndpoint">
+                        <option value="/api/auth/user/">User Profile</option>
+                        <option value="/api/auth/verify/">Enhanced Verify</option>
+                        <!-- Add more protected endpoints as needed -->
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-warning" onclick="testProtectedEndpoint()">🔐 Test Protected Request</button>
+                </div>
+            </div>
+            <div id="protectedResponse" class="response-area mt-3">Select an endpoint and click "Test Protected Request"...</div>
+        </div>
+    </div>
+    
+    <!-- Documentation -->
+    <div class="endpoint-card">
+        <div class="endpoint-header">
+            <h4 class="mb-0">📚 Usage Instructions</h4>
+        </div>
+        <div class="endpoint-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>🔧 For Developers:</h6>
+                    <ul>
+                        <li>Use <code>window.authManager.login(email, password)</code> for authentication</li>
+                        <li>Access tokens are automatically handled in API requests</li>
+                        <li>Use <code>window.authManager.authenticatedFetch(url, options)</code> for protected endpoints</li>
+                        <li>Listen for <code>auth:login</code> and <code>auth:logout</code> events</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>🎯 Features:</h6>
+                    <ul>
+                        <li>Automatic token refresh on expiration</li>
+                        <li>Secure token storage in localStorage</li>
+                        <li>Token blacklisting for secure logout</li>
+                        <li>Enhanced user data in login response</li>
+                        <li>Cross-tab authentication synchronization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Demo Functions
+async function quickLogin() {
+    const email = document.getElementById('quickEmail').value;
+    const password = document.getElementById('quickPassword').value;
+    const responseDiv = document.getElementById('quickLoginResponse');
+    
+    try {
+        responseDiv.textContent = 'Authenticating...';
+        const result = await window.authManager.login(email, password);
+        responseDiv.textContent = JSON.stringify(result, null, 2);
+        updateTokenDisplay();
+        updateAuthStatus();
+    } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+    }
+}
+
+async function quickLogout() {
+    const responseDiv = document.getElementById('quickLoginResponse');
+    try {
+        await window.authManager.logout();
+        responseDiv.textContent = 'Logged out successfully';
+        updateTokenDisplay();
+        updateAuthStatus();
+    } catch (error) {
+        responseDiv.textContent = `Logout error: ${error.message}`;
+    }
+}
+
+async function testTokenVerify() {
+    const responseDiv = document.getElementById('verifyResponse');
+    const accessToken = window.authManager.getAccessToken();
+    
+    if (!accessToken) {
+        responseDiv.textContent = 'No access token available. Please login first.';
+        return;
+    }
+    
+    try {
+        responseDiv.textContent = 'Verifying token...';
+        const response = await fetch('/api/auth/token/verify/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ token: accessToken })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            responseDiv.textContent = 'Token is valid!\n' + JSON.stringify(data, null, 2);
+        } else {
+            const error = await response.json();
+            responseDiv.textContent = 'Token verification failed:\n' + JSON.stringify(error, null, 2);
+        }
+    } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+    }
+}
+
+async function testUserProfile() {
+    const responseDiv = document.getElementById('profileResponse');
+    
+    try {
+        responseDiv.textContent = 'Fetching user profile...';
+        const response = await window.authManager.authenticatedFetch('/api/auth/user/');
+        
+        if (response.ok) {
+            const data = await response.json();
+            responseDiv.textContent = JSON.stringify(data, null, 2);
+        } else {
+            const error = await response.json();
+            responseDiv.textContent = 'Error:\n' + JSON.stringify(error, null, 2);
+        }
+    } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+    }
+}
+
+async function testTokenRefresh() {
+    const responseDiv = document.getElementById('refreshResponse');
+    
+    try {
+        responseDiv.textContent = 'Refreshing tokens...';
+        const newToken = await window.authManager.refreshAccessToken();
+        responseDiv.textContent = `New access token obtained:\n${newToken}`;
+        updateTokenDisplay();
+    } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+    }
+}
+
+async function testEnhancedVerify() {
+    const responseDiv = document.getElementById('enhancedVerifyResponse');
+    
+    try {
+        responseDiv.textContent = 'Testing enhanced verify...';
+        const response = await window.authManager.authenticatedFetch('/api/auth/verify/');
+        
+        if (response.ok) {
+            const data = await response.json();
+            responseDiv.textContent = JSON.stringify(data, null, 2);
+        } else {
+            const error = await response.json();
+            responseDiv.textContent = 'Error:\n' + JSON.stringify(error, null, 2);
+        }
+    } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+    }
+}
+
+async function testProtectedEndpoint() {
+    const endpoint = document.getElementById('protectedEndpoint').value;
+    const responseDiv = document.getElementById('protectedResponse');
+    
+    try {
+        responseDiv.textContent = `Testing ${endpoint}...`;
+        const response = await window.authManager.authenticatedFetch(endpoint);
+        
+        if (response.ok) {
+            const data = await response.json();
+            responseDiv.textContent = JSON.stringify(data, null, 2);
+        } else {
+            const error = await response.json();
+            responseDiv.textContent = 'Error:\n' + JSON.stringify(error, null, 2);
+        }
+    } catch (error) {
+        responseDiv.textContent = `Error: ${error.message}`;
+    }
+}
+
+function updateTokenDisplay() {
+    const accessToken = window.authManager.getAccessToken();
+    const refreshToken = window.authManager.getRefreshToken();
+    
+    document.getElementById('accessTokenDisplay').textContent = 
+        accessToken ? accessToken.substring(0, 50) + '...' : 'No token';
+    document.getElementById('refreshTokenDisplay').textContent = 
+        refreshToken ? refreshToken.substring(0, 50) + '...' : 'No token';
+}
+
+function updateAuthStatus() {
+    const isAuth = window.authManager.isAuthenticated();
+    const user = window.authManager.getCurrentUser();
+    const statusDiv = document.getElementById('authStatusContent');
+    
+    if (isAuth && user) {
+        statusDiv.innerHTML = `
+            <div class="text-success">
+                ✅ <strong>Authenticated</strong><br>
+                <small>${user.email}</small><br>
+                <small>Name: ${user.first_name} ${user.last_name}</small>
+            </div>
+        `;
+    } else {
+        statusDiv.innerHTML = `
+            <div class="text-warning">
+                ⚠️ <strong>Not Authenticated</strong><br>
+                <small>Please login to test endpoints</small>
+            </div>
+        `;
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateTokenDisplay();
+    updateAuthStatus();
+    
+    // Listen for auth events
+    window.addEventListener('auth:login', updateAuthStatus);
+    window.addEventListener('auth:logout', updateAuthStatus);
+});
+</script>
+{% endblock %}

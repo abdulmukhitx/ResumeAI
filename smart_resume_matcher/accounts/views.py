@@ -7,6 +7,7 @@ from django.apps import apps
 from django.db import IntegrityError
 import os
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileEditForm
+from .decorators import jwt_login_required
 
 # Dynamically load models to avoid circular imports
 Resume = apps.get_model('resumes', 'Resume')
@@ -17,10 +18,10 @@ def register_view(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             try:
-                user = form.save()
-                login(request, user)
-                messages.success(request, 'Account created successfully! Welcome to Smart Resume Matcher.')
-                return redirect('home')
+                form.save()
+                # Don't use session login anymore - redirect to JWT login instead
+                messages.success(request, 'Account created successfully! Please log in with your new account.')
+                return redirect('login')
             except IntegrityError as e:
                 # Handle database integrity errors gracefully
                 if 'username' in str(e).lower():
@@ -67,13 +68,27 @@ def login_view(request):
     
     return render(request, 'registration/login.html', {'form': form})
 
-@login_required
+def jwt_login_view(request):
+    """
+    JWT login page - the new default authentication method
+    """
+    # No need to check session authentication here - JWT handles its own state
+    form = UserLoginForm()
+    return render(request, 'registration/jwt_login.html', {'form': form})
+
 def logout_view(request):
-    logout(request)
-    messages.success(request, 'You have been logged out successfully.')
+    """
+    Unified logout that handles both session and JWT authentication
+    """
+    # Clear session if exists
+    if request.user.is_authenticated:
+        logout(request)
+        messages.success(request, 'You have been logged out successfully.')
+    
+    # The frontend JWT manager will handle JWT token cleanup
     return redirect('login')
 
-@login_required
+@jwt_login_required
 def profile_view(request):
     user = request.user
     # Use a safer approach to check profile picture
@@ -96,7 +111,7 @@ def profile_view(request):
     }
     return render(request, 'accounts/profile.html', context)
 
-@login_required
+@jwt_login_required
 def edit_profile_view(request):
     # Check and fix profile picture issues before displaying the form
     user = request.user
@@ -119,3 +134,9 @@ def edit_profile_view(request):
         form = UserProfileEditForm(instance=user)
     
     return render(request, 'accounts/edit_profile.html', {'form': form})
+
+def jwt_demo_view(request):
+    """
+    JWT authentication demo page
+    """
+    return render(request, 'jwt_demo.html')

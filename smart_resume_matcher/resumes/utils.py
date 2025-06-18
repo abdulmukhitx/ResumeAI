@@ -2,6 +2,7 @@ import PyPDF2
 import requests
 from django.conf import settings
 from typing import Dict, Any
+from .universal_skills import get_all_skills
 
 class PDFProcessor:
     @staticmethod
@@ -125,14 +126,16 @@ class AIAnalyzer:
             return self._fallback_analysis(resume_text, "AI analysis not enabled")
         
         prompt = f"""
-        Analyze the following resume and extract structured information in JSON format:
+        Analyze the following resume and extract structured information in JSON format.
+        This resume could be from ANY profession including healthcare, legal, education, finance, marketing, 
+        sales, operations, customer service, creative fields, research, or technology.
 
         Resume Text:
         {resume_text}
 
         Please extract and return ONLY a valid JSON object with these fields:
         {{
-            "skills": ["list of technical and soft skills"],
+            "skills": ["list of ALL relevant skills including technical skills, clinical skills, legal skills, teaching skills, financial skills, soft skills, certifications, tools, software, equipment, etc."],
             "experience_level": "entry/junior/middle/senior/lead",
             "job_titles": ["list of job titles from work experience"],
             "education": [
@@ -155,9 +158,14 @@ class AIAnalyzer:
         }}
 
         Guidelines:
+        - Extract ALL relevant skills regardless of profession (medical, legal, educational, financial, technical, etc.)
+        - For healthcare: include clinical skills, medical equipment, certifications, specialties
+        - For legal: include practice areas, legal software, court procedures, legal research
+        - For education: include teaching methods, subject areas, educational tools, curriculum development
+        - For finance: include accounting software, financial analysis, investment knowledge, regulations
+        - For any profession: include relevant software, tools, methodologies, and certifications
         - Extract only information that is clearly stated in the resume
         - For experience_level, consider years of experience and seniority of positions
-        - Skills should include both technical skills and relevant soft skills
         - If information is not available, use empty arrays or null values
         - Confidence score should be between 0.0 and 1.0 based on text quality
 
@@ -252,31 +260,18 @@ class AIAnalyzer:
             return self._fallback_analysis(resume_text)
     
     def _fallback_analysis(self, resume_text: str, reason: str = None) -> Dict[str, Any]:
-        """Enhanced local resume analysis when AI is unavailable"""
+        """Enhanced local resume analysis when AI is unavailable - supports all professions"""
         import re
         
-        # Expanded skills extraction using regex patterns
-        tech_skills = [
-            "python", "javascript", "typescript", "java", "c\\+\\+", "c#", "ruby", "php", "swift", "kotlin",
-            "html", "css", "sass", "less", "tailwind", "bootstrap", "sql", "nosql", "mongodb", "postgresql", 
-            "mysql", "oracle", "redis", "react", "angular", "vue", "svelte", "jquery", "redux", "gatsby", "nextjs",
-            "django", "laravel", "flask", "rails", "express", "spring", "node", "deno", "asp\\.net",
-            "docker", "kubernetes", "aws", "azure", "gcp", "firebase", "heroku", "netlify", "vercel",
-            "git", "github", "gitlab", "bitbucket", "jenkins", "travis", "circle", "ansible", "terraform"
-        ]
-        
-        soft_skills = [
-            "leadership", "communication", "teamwork", "problem.solving", "critical.thinking",
-            "time.management", "decision.making", "organization", "agile", "scrum", "kanban",
-            "presentation", "negotiation", "conflict.resolution", "mentoring", "coaching"
-        ]
+        # Use universal skills database instead of just tech skills
+        all_skills = get_all_skills()
         
         # Extract skills using regex with word boundaries
         skills = []
-        for skill in tech_skills + soft_skills:
-            pattern = r'\b' + skill.replace('.', '[ -]?') + r'\b'
+        for skill in all_skills:
+            pattern = r'\b' + re.escape(skill.lower()).replace(r'\ ', r'[ -]?') + r'\b'
             if re.search(pattern, resume_text.lower()):
-                skills.append(skill.replace('\\', '').replace('.', ' '))
+                skills.append(skill)
         
         # Enhanced experience level estimation
         experience_level = "junior"  # Default
@@ -314,10 +309,53 @@ class AIAnalyzer:
         
         # Then try pattern-based extraction if needed
         if not job_titles:
+            # Universal job title patterns covering all professions
             title_patterns = [
+                # Technology
                 r'(senior|lead|principal|staff)?\s*(software|frontend|backend|full[\s-]?stack|mobile|ios|android|web|cloud|data|devops|ml|ai|system|network|security)\s*(developer|engineer|architect)',
                 r'(ux|ui|user experience|user interface|product|project|program|technical|engineering|it|information technology)\s*(designer|manager|lead|director)',
-                r'(data|business|systems|financial|marketing|sales)\s*(analyst|scientist)',
+                
+                # Healthcare
+                r'(registered|licensed|certified)?\s*(nurse|physician|doctor|therapist|pharmacist|dentist|surgeon|radiologist|cardiologist|neurologist)\s*(practitioner|specialist|assistant)?',
+                r'(medical|clinical|health)\s*(assistant|technician|coordinator|specialist|administrator)',
+                r'(charge|head|staff|icu|er|emergency)\s*(nurse)',
+                
+                # Legal
+                r'(senior|associate|junior|lead)?\s*(attorney|lawyer|counsel|paralegal|legal)\s*(assistant|advisor|specialist|officer)?',
+                r'(corporate|criminal|civil|family|immigration|intellectual property)\s*(lawyer|attorney)',
+                
+                # Education
+                r'(elementary|middle|high school|university|college)?\s*(teacher|professor|instructor|educator|lecturer|tutor)',
+                r'(curriculum|academic|student|admissions)\s*(coordinator|advisor|counselor|specialist)',
+                r'(special education|esl|math|science|english|history)\s*(teacher|instructor)',
+                
+                # Finance & Accounting
+                r'(senior|staff|junior)?\s*(accountant|auditor|financial|tax)\s*(analyst|advisor|specialist|manager)?',
+                r'(investment|banking|credit|loan)\s*(analyst|officer|specialist|advisor)',
+                r'(accounts|budget|treasury|risk)\s*(manager|analyst|coordinator)',
+                
+                # Sales & Marketing
+                r'(sales|marketing|business development|account)\s*(manager|representative|executive|specialist|coordinator)',
+                r'(digital|content|social media|brand)\s*(marketing|manager|specialist|coordinator)',
+                r'(inside|outside|field|territory)\s*(sales)',
+                
+                # Human Resources
+                r'(human resources|hr|talent|recruitment)\s*(manager|specialist|coordinator|assistant|generalist)',
+                r'(recruiting|talent acquisition|benefits|payroll)\s*(specialist|coordinator|manager)',
+                
+                # Operations & Management
+                r'(operations|project|program|general)\s*(manager|director|coordinator|analyst)',
+                r'(supply chain|logistics|warehouse|inventory)\s*(manager|coordinator|specialist|analyst)',
+                
+                # Customer Service
+                r'(customer|client|technical|help desk)\s*(service|support|success)\s*(representative|specialist|manager|coordinator)?',
+                
+                # Creative & Design
+                r'(graphic|web|ui/ux|interior|fashion)\s*(designer)',
+                r'(art|creative|brand|marketing)\s*(director|manager|coordinator)',
+                
+                # General patterns
+                r'(data|business|systems|financial|marketing|sales|research)\s*(analyst|scientist)',
                 r'(scrum|agile|product|project|program|delivery)\s*(master|manager|owner|lead|coach)'
             ]
             
@@ -332,14 +370,34 @@ class AIAnalyzer:
                     if title and title.lower() not in [t.lower() for t in job_titles]:
                         job_titles.append(title.title())  # Convert to title case
             
-            # If still no specific titles found, look for generic job titles
+            # If still no specific titles found, look for generic job titles across all professions
             if not job_titles:
-                generic_matches = re.findall(r'(Developer|Engineer|Designer|Manager|Analyst|Consultant|Director|Lead)[^,\n]*', resume_text)
-                if generic_matches:
-                    for title in generic_matches[:3]:  # Take top 3 matches
-                        clean_title = title.strip()
-                        if clean_title and clean_title.lower() not in [t.lower() for t in job_titles]:
-                            job_titles.append(clean_title)
+                generic_patterns = [
+                    # Technology
+                    r'(Developer|Engineer|Programmer|Architect|Analyst)',
+                    # Healthcare
+                    r'(Nurse|Doctor|Physician|Therapist|Technician|Assistant)',
+                    # Legal
+                    r'(Attorney|Lawyer|Paralegal|Counsel)',
+                    # Education
+                    r'(Teacher|Professor|Instructor|Educator|Tutor)',
+                    # Finance
+                    r'(Accountant|Auditor|Analyst|Advisor)',
+                    # Sales & Marketing
+                    r'(Manager|Representative|Executive|Specialist|Coordinator)',
+                    # General
+                    r'(Director|Lead|Supervisor|Administrator|Consultant)'
+                ]
+                
+                for pattern in generic_patterns:
+                    generic_matches = re.findall(pattern + r'[^,\n]*', resume_text)
+                    if generic_matches:
+                        for title in generic_matches[:3]:  # Take top 3 matches
+                            clean_title = title.strip()
+                            if clean_title and clean_title.lower() not in [t.lower() for t in job_titles]:
+                                job_titles.append(clean_title)
+                        if job_titles:  # Break if we found some titles
+                            break
         
         # Enhanced education extraction with improved pattern matching
         education = []

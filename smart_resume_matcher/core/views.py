@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.apps import apps
-from django.conf import settings
 import random
 
 # Dynamically load models to avoid circular imports
