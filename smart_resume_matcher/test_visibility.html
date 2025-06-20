@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visibility Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/modern-theme.css">
+    <link rel="stylesheet" href="/static/css/dark-mode-override.css">
+    <style>
+        /* Additional diagnostic styles */
+        .diagnostic {
+            padding: 20px;
+            margin: 20px 0;
+            border: 3px solid red;
+            background: yellow !important;
+            color: black !important;
+        }
+        
+        .theme-toggle-test {
+            background: red !important;
+            color: white !important;
+            border: 3px solid blue !important;
+            border-radius: 50% !important;
+            width: 60px !important;
+            height: 60px !important;
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            z-index: 99999 !important;
+            font-size: 2rem !important;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Visibility Test</a>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item d-flex align-items-center">
+                    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle dark/light mode">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Additional diagnostic button -->
+    <button class="theme-toggle-test" onclick="testToggle()">
+        TEST
+    </button>
+
+    <div class="container mt-4">
+        <div class="diagnostic">
+            <h1>DIAGNOSTIC PAGE</h1>
+            <p>This page tests if the theme toggle is visible and working.</p>
+            <p>Current theme: <span id="current-theme">light</span></p>
+            <p>Button found: <span id="button-status">checking...</span></p>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Visibility Test Card</h5>
+                <p class="card-text">This text should be visible in both light and dark modes.</p>
+                <button class="btn btn-primary">Test Button</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        function testToggle() {
+            console.log('TEST BUTTON CLICKED');
+            const theme = document.documentElement.getAttribute('data-theme');
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            document.getElementById('current-theme').textContent = theme;
+            
+            const button = document.getElementById('theme-toggle');
+            document.getElementById('button-status').textContent = button ? 'FOUND' : 'NOT FOUND';
+        }
+        
+        // Update display every second
+        setInterval(updateDisplay, 1000);
+        updateDisplay();
+    </script>
+</body>
+</html>

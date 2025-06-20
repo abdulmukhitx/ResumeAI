@@ -1,0 +1,234 @@
+/* EMERGENCY VISIBILITY FIX - FORCE THEME TOGGLE TO APPEAR */
+/* This file overrides ALL other styles to ensure theme toggle button is visible */
+
+/* CRITICAL: Force theme toggle button to be visible with maximum specificity */
+body .navbar .nav-item .theme-toggle,
+.navbar .theme-toggle,
+#theme-toggle,
+button.theme-toggle,
+.theme-toggle {
+    /* Force display and visibility */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    /* Force positioning and sizing */
+    position: relative !important;
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    min-height: 50px !important;
+    
+    /* Force styling to be visible */
+    background: #8c43ff !important;
+    background-image: linear-gradient(135deg, #8c43ff 0%, #7938d6 100%) !important;
+    color: #ffffff !important;
+    border: 3px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 50% !important;
+    
+    /* Force centering */
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* Force z-index and cursor */
+    z-index: 99999 !important;
+    cursor: pointer !important;
+    
+    /* Force margins and padding */
+    margin: 0 10px !important;
+    padding: 0 !important;
+    
+    /* Force transitions */
+    transition: all 0.3s ease !important;
+    
+    /* Force box shadow for visibility */
+    box-shadow: 0 2px 10px rgba(140, 67, 255, 0.5) !important;
+    
+    /* Force font properties */
+    font-size: 1.4rem !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    
+    /* Remove any transforms that might hide it */
+    transform: none !important;
+    
+    /* Force overflow and text decoration */
+    overflow: visible !important;
+    text-decoration: none !important;
+    
+    /* Force pointer events */
+    pointer-events: auto !important;
+    
+    /* Force outline removal */
+    outline: none !important;
+}
+
+/* Force icon to be visible */
+body .theme-toggle i,
+.theme-toggle i,
+#theme-toggle i,
+#theme-icon {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #ffffff !important;
+    font-size: 1.2rem !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+    transition: transform 0.3s ease !important;
+}
+
+/* Force hover state to be visible */
+body .navbar .nav-item .theme-toggle:hover,
+.navbar .theme-toggle:hover,
+#theme-toggle:hover,
+button.theme-toggle:hover,
+.theme-toggle:hover {
+    background: #7938d6 !important;
+    background-image: linear-gradient(135deg, #7938d6 0%, #8c43ff 100%) !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 4px 15px rgba(140, 67, 255, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Force focus state to be visible */
+body .navbar .nav-item .theme-toggle:focus,
+.navbar .theme-toggle:focus,
+#theme-toggle:focus,
+button.theme-toggle:focus,
+.theme-toggle:focus {
+    background: #7938d6 !important;
+    background-image: linear-gradient(135deg, #7938d6 0%, #8c43ff 100%) !important;
+    box-shadow: 0 4px 15px rgba(140, 67, 255, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+    outline: 2px solid rgba(255, 255, 255, 0.5) !important;
+    outline-offset: 2px !important;
+}
+
+/* Force active state to be visible */
+body .navbar .nav-item .theme-toggle:active,
+.navbar .theme-toggle:active,
+#theme-toggle:active,
+button.theme-toggle:active,
+.theme-toggle:active {
+    transform: scale(0.95) !important;
+    box-shadow: 0 2px 8px rgba(140, 67, 255, 0.8) !important;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] body .navbar .nav-item .theme-toggle,
+[data-theme="dark"] .navbar .theme-toggle,
+[data-theme="dark"] #theme-toggle,
+[data-theme="dark"] button.theme-toggle,
+[data-theme="dark"] .theme-toggle {
+    background: #FFD700 !important;
+    background-image: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
+    border-color: rgba(255, 215, 0, 0.4) !important;
+    box-shadow: 0 2px 10px rgba(255, 215, 0, 0.5) !important;
+}
+
+[data-theme="dark"] body .theme-toggle i,
+[data-theme="dark"] .theme-toggle i,
+[data-theme="dark"] #theme-toggle i,
+[data-theme="dark"] #theme-icon {
+    color: #1a1a1a !important;
+}
+
+[data-theme="dark"] body .navbar .nav-item .theme-toggle:hover,
+[data-theme="dark"] .navbar .theme-toggle:hover,
+[data-theme="dark"] #theme-toggle:hover,
+[data-theme="dark"] button.theme-toggle:hover,
+[data-theme="dark"] .theme-toggle:hover {
+    background: #FFA500 !important;
+    background-image: linear-gradient(135deg, #FFA500 0%, #FFD700 100%) !important;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.7) !important;
+}
+
+/* Force navbar positioning for theme toggle container */
+.navbar .nav-item {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.navbar .navbar-nav .nav-item:last-child {
+    margin-right: 0 !important;
+}
+
+/* Force any parent containers to be visible */
+.navbar .navbar-nav {
+    align-items: center !important;
+}
+
+.navbar .container {
+    display: flex !important;
+}
+
+.navbar .navbar-collapse {
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Override any bootstrap or custom styles that might hide elements */
+.d-flex {
+    display: flex !important;
+}
+
+.align-items-center {
+    align-items: center !important;
+}
+
+/* ENSURE TEXT VISIBILITY IN ALL MODES */
+body,
+html,
+.container,
+.content,
+p,
+span,
+div,
+h1, h2, h3, h4, h5, h6,
+.card-body,
+.card-text,
+.nav-link {
+    color: var(--text-primary, #212529) !important;
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] html,
+[data-theme="dark"] .container,
+[data-theme="dark"] .content,
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] div,
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+[data-theme="dark"] .card-body,
+[data-theme="dark"] .card-text {
+    color: #ffffff !important;
+}
+
+/* Force navbar text visibility */
+.navbar .nav-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: #ffffff !important;
+}
+
+/* Debug outline to verify button placement (remove in production) */
+/* 
+.theme-toggle {
+    outline: 2px solid red !important;
+    outline-offset: 2px !important;
+}
+*/
