@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Toggle Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/emergency-visibility-fix.css">
+    <link rel="stylesheet" href="/static/css/modern-theme.css">
+    <link rel="stylesheet" href="/static/css/dark-mode-override.css">
+    <style>
+        body {
+            padding: 50px;
+            font-family: Arial, sans-serif;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .debug-output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .theme-toggle-test {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Theme Toggle Test Page</h1>
+        
+        <div class="test-section">
+            <h3>1. Theme Toggle Button Test</h3>
+            <div class="theme-toggle-test">
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle dark/light mode">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+                <span>← This should be the theme toggle button</span>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Current Theme Status</h3>
+            <div class="debug-output" id="theme-status">
+                Loading...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Manual Controls</h3>
+            <button class="btn btn-primary me-2" onclick="setTheme('light')">Force Light Theme</button>
+            <button class="btn btn-secondary me-2" onclick="setTheme('dark')">Force Dark Theme</button>
+            <button class="btn btn-info me-2" onclick="debugTheme()">Debug Theme</button>
+            <button class="btn btn-warning" onclick="forceThemeToggleSetup()">Reset Toggle</button>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Console Log Output</h3>
+            <div class="debug-output" id="console-log">
+                Open browser DevTools (F12) to see detailed logs...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. Visual Verification</h3>
+            <p>Current background should change when you toggle themes:</p>
+            <ul>
+                <li><strong>Light theme:</strong> White/light background</li>
+                <li><strong>Dark theme:</strong> Dark background</li>
+            </ul>
+            <p>Button icon should change:</p>
+            <ul>
+                <li><strong>Light theme:</strong> Moon icon (🌙)</li>
+                <li><strong>Dark theme:</strong> Sun icon (☀️)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        // Test functions
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeStatus();
+            if (window.updateThemeToggleIcon) {
+                updateThemeToggleIcon(theme);
+            }
+            console.log('✅ Theme set to:', theme);
+        }
+
+        function updateThemeStatus() {
+            const status = document.getElementById('theme-status');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const savedTheme = localStorage.getItem('theme');
+            const button = document.getElementById('theme-toggle');
+            const icon = document.getElementById('theme-icon');
+            
+            status.innerHTML = `
+Current theme: ${currentTheme}
+Saved theme: ${savedTheme}
+Button found: ${button ? 'YES' : 'NO'}
+Icon found: ${icon ? 'YES' : 'NO'}
+Button visible: ${button ? (button.offsetWidth > 0 ? 'YES' : 'NO') : 'N/A'}
+Icon class: ${icon ? icon.className : 'N/A'}
+            `;
+        }
+
+        // Update status every 2 seconds
+        setInterval(updateThemeStatus, 2000);
+        
+        // Initial update
+        setTimeout(updateThemeStatus, 500);
+
+        // Override console.log to also display in page
+        const originalLog = console.log;
+        const logOutput = document.getElementById('console-log');
+        let logLines = [];
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            logLines.push(args.join(' '));
+            if (logLines.length > 10) logLines.shift();
+            if (logOutput) {
+                logOutput.textContent = logLines.join('\n');
+            }
+        };
+    </script>
+</body>
+</html>
