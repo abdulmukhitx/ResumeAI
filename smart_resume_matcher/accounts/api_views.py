@@ -170,3 +170,67 @@ def user_info_api_view(request):
             'success': False,
             'error': 'Failed to get user info'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([])  # No authentication required for registration
+def register_api_view(request):
+    """
+    JWT-compatible user registration API endpoint
+    """
+    try:
+        data = request.data
+        
+        # Validate required fields
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        password2 = data.get('password2')
+        
+        if not all([username, email, password, password2]):
+            return Response({
+                'success': False,
+                'error': 'All fields are required: username, email, password, password2'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if password != password2:
+            return Response({
+                'success': False,
+                'error': 'Passwords do not match'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if user already exists
+        if User.objects.filter(email=email).exists():
+            return Response({
+                'success': False,
+                'error': 'User with this email already exists'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if User.objects.filter(username=username).exists():
+            return Response({
+                'success': False,
+                'error': 'User with this username already exists'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create user
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+        
+        return Response({
+            'success': True,
+            'message': 'User registered successfully',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        logger.error(f"Registration API error: {e}")
+        return Response({
+            'success': False,
+            'error': 'Registration failed'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

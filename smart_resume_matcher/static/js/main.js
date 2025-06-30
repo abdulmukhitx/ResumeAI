@@ -1,31 +1,65 @@
 // Main JavaScript for Smart Resume Matcher
 
-// GLOBAL REDIRECT PROTECTION - Prevent infinite redirect loops
+// SMART REDIRECT PROTECTION - Prevent infinite redirect loops
 (function() {
-    const REDIRECT_COOLDOWN = 1000; // 1 second between redirects
-    let lastRedirectTime = 0;
+    const MAX_REDIRECTS = 3;
+    const REDIRECT_WINDOW = 5000; // 5 seconds
+    let redirectHistory = [];
     
-    // Override window.location.href to add protection
-    const originalLocationSetter = Object.getOwnPropertyDescriptor(window.location, 'href').set;
-    Object.defineProperty(window.location, 'href', {
-        set: function(url) {
-            const currentTime = Date.now();
-            if (currentTime - lastRedirectTime < REDIRECT_COOLDOWN) {
-                console.error('🛡️ REDIRECT BLOCKED: Potential infinite redirect loop detected!', {
-                    url: url,
-                    timeSinceLastRedirect: currentTime - lastRedirectTime,
-                    currentPath: window.location.pathname
-                });
-                return;
-            }
-            lastRedirectTime = currentTime;
-            console.log('✅ Redirect allowed:', url);
-            originalLocationSetter.call(this, url);
-        },
-        get: function() {
-            return window.location.toString();
+    // Track redirects without overriding location
+    function trackRedirect(url) {
+        const now = Date.now();
+        const currentPath = window.location.pathname;
+        
+        // Clean old entries
+        redirectHistory = redirectHistory.filter(entry => now - entry.timestamp < REDIRECT_WINDOW);
+        
+        // Check for potential loop
+        const sameUrlRedirects = redirectHistory.filter(entry => 
+            entry.url === url || entry.from === currentPath
+        );
+        
+        if (sameUrlRedirects.length >= MAX_REDIRECTS) {
+            console.warn('🛡️ Potential redirect loop detected:', {
+                url: url,
+                from: currentPath,
+                count: sameUrlRedirects.length,
+                history: redirectHistory
+            });
+            return false;
         }
+        
+        // Add to history
+        redirectHistory.push({
+            url: url,
+            from: currentPath,
+            timestamp: now
+        });
+        
+        return true;
+    }
+    
+    // Safe redirect function
+    window.safeRedirect = function(url) {
+        if (trackRedirect(url)) {
+            console.log('✅ Safe redirect to:', url);
+            window.location.href = url;
+        } else {
+            console.error('❌ Redirect blocked to prevent loop:', url);
+        }
+    };
+    
+    // Monitor for programmatic redirects
+    let isRedirecting = false;
+    window.addEventListener('beforeunload', function() {
+        isRedirecting = true;
     });
+    
+    // Reset flag after navigation
+    window.addEventListener('pageshow', function() {
+        isRedirecting = false;
+    });
+    
 })();
 
 // Enhanced Dark theme functionality
@@ -335,7 +369,7 @@ function initializeJWTAuth() {
                 window.authManager.updateNavigation();
             }
             // Redirect to login page
-            window.location.href = '/login/';
+            window.safeRedirect('/login/');
         });
         
         window.authEventsInitialized = true;
@@ -352,7 +386,7 @@ function initializeJWTAuth() {
                 console.error('Logout error:', error);
                 // Force logout anyway
                 window.authManager.clearTokens();
-                window.location.href = '/login/';
+                window.safeRedirect('/login/');
             }
         });
     });
@@ -386,13 +420,13 @@ function handlePageAccess(isAuthenticated) {
     // Handle legacy URL redirects to JWT-compatible URLs
     if (currentPath === '/profile/') {
         console.log('Redirecting from legacy profile URL to JWT profile');
-        window.location.href = '/jwt-profile/';
+        window.safeRedirect('/jwt-profile/');
         return;
     }
     
     if (currentPath === '/resume/upload/') {
         console.log('Redirecting from legacy resume upload URL to JWT resume upload');
-        window.location.href = '/jwt-resume-upload/';
+        window.safeRedirect('/jwt-resume-upload/');
         return;
     }
     
@@ -403,7 +437,7 @@ function handlePageAccess(isAuthenticated) {
     // If user is on login/register page and authenticated, redirect to home
     if (isAuthenticated && (currentPath === '/login/' || currentPath === '/register/')) {
         console.log('User is authenticated, redirecting to home...');
-        window.location.href = '/';
+        window.safeRedirect('/');
         return;
     }
     

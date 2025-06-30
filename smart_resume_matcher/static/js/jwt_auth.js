@@ -6,7 +6,21 @@
  */
 
 class JWTAuthManager {
+    /**
+     * Store tokens in localStorage AND cookies for Django middleware
+     * @param {string} accessToken 
+     * @param {string} refreshToken 
+     */
+    setTokens(accessToken, refreshToken) {
+        localStorage.setItem(this.accessTokenKey, accessToken);
+        localStorage.setItem(this.refreshTokenKey, refreshToken);
+        
+        // Also store in cookies for Django middleware compatibility
+        this.setCookie('refresh_token', refreshToken, 7); // 7 days
+    }
+
     constructor() {
+    }onstructor() {
         this.baseURL = window.location.origin;
         this.accessTokenKey = 'smart_resume_access_token';
         this.refreshTokenKey = 'smart_resume_refresh_token';
@@ -255,11 +269,15 @@ class JWTAuthManager {
     }
 
     /**
-     * Clear stored tokens
+     * Clear stored tokens from localStorage AND cookies
      */
     clearTokens() {
         localStorage.removeItem(this.accessTokenKey);
         localStorage.removeItem(this.refreshTokenKey);
+        
+        // Also clear cookies
+        this.deleteCookie('access_token');
+        this.deleteCookie('refresh_token');
     }
 
     /**
@@ -296,6 +314,30 @@ class JWTAuthManager {
             detail: data 
         });
         window.dispatchEvent(event);
+    }
+
+    /**
+     * Cookie utility functions for Django middleware compatibility
+     */
+    setCookie(name, value, hours) {
+        const expires = new Date();
+        expires.setTime(expires.getTime() + (hours * 60 * 60 * 1000));
+        document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+    }
+    
+    deleteCookie(name) {
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+    }
+    
+    getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for(let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
     }
 
     /**

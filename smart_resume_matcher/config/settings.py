@@ -73,23 +73,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database - Always use SQLite, even in production
+# Database - PostgreSQL Configuration
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'CONN_MAX_AGE': 0,  # Don't keep connections alive to prevent locks
-        'ATOMIC_REQUESTS': False,  # Don't wrap all requests in transactions (causes locks)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'jobpilot',
+        'USER': 'abdulmukhit',
+        'PASSWORD': 'acernitrO5',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
         'OPTIONS': {
-            'timeout': 20,  # Timeout for database operations (20 seconds)
-            'init_command': "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+            'connect_timeout': 10,
+            'application_name': 'smart_resume_matcher',
         },
     }
 }
 
-# We're using SQLite, so we ignore DATABASE_URL even if it's set
-# This avoids any PostgreSQL connection attempts
-# DATABASE_URL = os.environ.get('DATABASE_URL')
+# Alternative: Use DATABASE_URL if provided (useful for cloud deployments)
+DATABASE_URL = config('DATABASE_URL', default=None)
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.parse(DATABASE_URL)
 # Commented out to prevent using PostgreSQL in any environment
 
 # Redis and Celery

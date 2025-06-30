@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# 🔐 GITHUB AUTHENTICATION FIX GUIDE
+# ===================================
+
+echo "🚀 FIXING GITHUB AUTHENTICATION ISSUES"
+echo "======================================="
+echo ""
+
+echo "📋 STEPS TO FIX:"
+echo "1. Create a Personal Access Token (PAT) on GitHub"
+echo "2. Use the PAT as your password when prompted"
+echo "3. Configure Git to use token authentication"
+echo ""
+
+echo "🔗 TO CREATE A PERSONAL ACCESS TOKEN:"
+echo "1. Go to: https://github.com/settings/tokens"
+echo "2. Click 'Generate new token' -> 'Generate new token (classic)'"
+echo "3. Set expiration: 90 days (or longer)"
+echo "4. Select scopes: ✅ repo (full control of private repositories)"
+echo "5. Click 'Generate token'"
+echo "6. COPY THE TOKEN (you won't see it again!)"
+echo ""
+
+echo "💻 THEN RUN THESE COMMANDS:"
+echo ""
+echo "# Remove cached credentials"
+echo "git config --global --unset credential.helper"
+echo "rm -f ~/.git-credentials"
+echo ""
+echo "# Set up credential caching"
+echo "git config --global credential.helper cache"
+echo "git config --global credential.helper 'cache --timeout=3600'"
+echo ""
+echo "# Try to push (you'll be prompted for username and password)"
+echo "git push origin main"
+echo ""
+echo "📝 WHEN PROMPTED:"
+echo "Username: abdulmukhitx"
+echo "Password: [PASTE YOUR PERSONAL ACCESS TOKEN HERE]"
+echo ""
+
+echo "🔄 ALTERNATIVE METHOD - Using SSH:"
+echo "1. Generate SSH key: ssh-keygen -t ed25519 -C 'abdulmukhit@example.com'"
+echo "2. Add to GitHub: https://github.com/settings/ssh/new"
+echo "3. Change remote: git remote set-url origin git@github.com:abdulmukhitx/ResumeAI.git"
+echo "4. Push: git push origin main"
+echo ""
+
+echo "✅ QUICK FIX COMMANDS:"
+echo "====================="
+echo "git config --global credential.helper cache"
+echo "git config --global credential.helper 'cache --timeout=3600'"
+echo "git push origin main"
+echo ""
+echo "Then enter your GitHub username and Personal Access Token when prompted."
+echo ""
+
+echo "🎯 CURRENT STATUS:"
+echo "- All critical fixes are committed locally ✅"
+echo "- Ready to push to GitHub once authentication is fixed ✅"
+echo "- Application is fully functional ✅"

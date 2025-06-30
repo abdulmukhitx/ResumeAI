@@ -10,6 +10,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.shortcuts import render
+from django.http import HttpResponse
 from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
@@ -20,10 +21,16 @@ from accounts.jwt_views import (
     user_profile_view,
     verify_token_view,
 )
+from accounts.api_views import register_api_view
 from core.views import home_view
 from accounts.views import register_view, login_view, logout_view, profile_view, edit_profile_view, jwt_login_view, jwt_demo_view
 from accounts.jwt_compatible_views import jwt_profile_view, jwt_home_view, jwt_resume_upload_view
 from resumes.views import resume_upload_view
+from resumes.ultra_safe_api import ultra_safe_resume_upload, ultra_safe_resume_status, ultra_safe_resume_list
+
+# Simple handler for Chrome DevTools requests
+def chrome_devtools_handler(request):
+    return HttpResponse('{}', content_type='application/json')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -56,6 +63,7 @@ urlpatterns = [
     path('jobs/', include('jobs.urls')),
     
     # JWT API URLs
+    path('api/auth/register/', register_api_view, name='api_register'),
     path('api/auth/login/', CustomTokenObtainPairView.as_view(), name='jwt_api_login'),  # JWT Login API
     path('api/auth/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
@@ -63,6 +71,14 @@ urlpatterns = [
     path('api/auth/logout/', jwt_logout_view, name='jwt_logout'),
     path('api/auth/user/', user_profile_view, name='jwt_user_profile'),
     path('api/auth/verify/', verify_token_view, name='jwt_verify_user'),
+    
+    # Resume API URLs
+    path('api/resume/upload/', ultra_safe_resume_upload, name='api_resume_upload'),
+    path('api/resume/status/<int:resume_id>/', ultra_safe_resume_status, name='api_resume_status'),
+    path('api/resume/list/', ultra_safe_resume_list, name='api_resume_list'),
+    
+    # Chrome DevTools handler (suppress 404 errors)
+    path('.well-known/appspecific/com.chrome.devtools.json', chrome_devtools_handler),
 ]
 
 # Serve media files in development

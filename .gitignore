@@ -1,0 +1,100 @@
+# Environment variables
+.env
+*.env.local
+
+# Logs
+*.log
+*.logs
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE files
+.vscode/settings.json
+.idea/
+
+# Database
+*.sqlite3
+*.db
+
+# Media uploads
+media/uploads/
+media/resumes/
+
+# Static files collection
+staticfiles/
+
+# Test files and development artifacts
+test_*.py
+*_test.py
+*_test.html
+debug_*.py
+verify_*.py
+*_verification.py
+*.test.*
+
+# Documentation and reports
+*.md
+!README.md
+*_SUMMARY.md
+*_REPORT.md
+*_SUCCESS.md
+*_COMPLETE.md
+*_ACCOMPLISHED.md
+
+# Build and deployment files
+build.sh
+deploy_*.sh
+setup_*.sh
+start_*.sh
+*_deployment*.py
+*_sync*.py
+Procfile.*
+render.yaml.*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Security
+*.key
+*.pem
+*.crt
+
+# Development scripts
+live_demo.py
+mock_*.py
+manual_*.py
+comprehensive_*.py
+emergency_*.py
+final_*.py
+complete_*.py
+enhanced_*_test.*
+infinite_*_test.*
+jwt_*_test.*
+theme_*_test.*
+dark_mode_test.*
+redirect_test.*
+
+# JavaScript debug files
+CONSOLE_*.js
+IMMEDIATE_*.js
+
+# HTML test files
+*_test.html
+test_*.html
