@@ -73,16 +73,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database - Always use SQLite, even in production
+# Database - PostgreSQL Configuration
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'CONN_MAX_AGE': 0,  # Don't keep connections alive to prevent locks
-        'ATOMIC_REQUESTS': False,  # Don't wrap all requests in transactions (causes locks)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'jobpilot',
+        'USER': 'abdulmukhit',
+        'PASSWORD': 'acernitrO5',
+        'HOST': 'localhost',
+        'PORT': '5432',
         'OPTIONS': {
-            'timeout': 20,  # Timeout for database operations (20 seconds)
-            'init_command': "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+            'connect_timeout': 10,
         },
     }
 }

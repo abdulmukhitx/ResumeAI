@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.apps import apps
 from .services import HHApiClient
 from .job_matcher import JobMatcher
+from resumes.enhanced_job_matcher import EnhancedJobMatcher
 from accounts.decorators import jwt_login_required
 
 # Dynamically load models to avoid circular imports
@@ -17,7 +18,7 @@ JobSearch = apps.get_model('jobs', 'JobSearch')
 
 @jwt_login_required
 def job_list_view(request):
-    """View to display all jobs"""
+    """View to display all jobs with enhanced matching"""
     # Get latest user resume
     user_resume = Resume.objects.filter(user=request.user, is_active=True).first()
     
@@ -25,8 +26,21 @@ def job_list_view(request):
         messages.warning(request, "Please upload your resume to see job matches.")
         return redirect('jwt_resume_upload')
     
-    # Get all jobs with their match scores
+    # Create enhanced job matcher
+    enhanced_matcher = EnhancedJobMatcher(user=request.user, resume=user_resume)
+    
+    # Try to get existing job matches, if none exist, generate them
     job_matches = JobMatch.objects.filter(resume=user_resume).select_related('job')
+    
+    if not job_matches.exists():
+        # Generate enhanced job matches
+        try:
+            enhanced_matcher.find_and_create_job_matches()
+            job_matches = JobMatch.objects.filter(resume=user_resume).select_related('job')
+            if job_matches.exists():
+                messages.success(request, f"Generated {job_matches.count()} enhanced job matches based on your skills!")
+        except Exception as e:
+            messages.warning(request, f"Could not generate enhanced matches: {e}")
     
     # Filter options
     match_filter = request.GET.get('match', None)
@@ -38,7 +52,7 @@ def job_list_view(request):
         job_matches = job_matches.filter(match_score__lt=50)
     
     # Get unique skills from user's resume
-    user_skills = set(user_resume.extracted_skills)
+    user_skills = set(user_resume.extracted_skills) if user_resume.extracted_skills else set()
     
     # Order by match score
     job_matches = job_matches.order_by('-match_score')
@@ -72,7 +86,10 @@ def ai_job_matches_view(request):
     location = request.GET.get('location', '')
     auto_search = request.GET.get('auto_search', False) == 'true'
     
-    # Create job matcher instance
+    # Create enhanced job matcher instance for better matching
+    enhanced_job_matcher = EnhancedJobMatcher(user=request.user, resume=user_resume)
+    
+    # Also keep legacy matcher for fallback
     job_matcher = JobMatcher(user=request.user, resume=user_resume)
     
     # Perform search if requested
@@ -94,19 +111,50 @@ def ai_job_matches_view(request):
         )
         
         try:
-            # Find matching jobs
-            job_matches = job_matcher.find_matching_jobs(search_query=search_query, location=location)
+            # Use enhanced job matching for better results
+            enhanced_matches = enhanced_job_matcher.generate_job_matches(limit=20)
             
-            # Ensure job_matches is not None before processing
-            if job_matches is None:
-                job_matches = []
-                messages.warning(request, "No matches returned. Please try different search terms.")
-            
-            # Extract jobs and update JobSearch record
+            # Convert enhanced matches to jobs list and ensure JobMatch objects exist
             jobs = []
-            for match in job_matches:
-                if isinstance(match, tuple) and len(match) >= 3 and match[0] is not None:
-                    jobs.append(match[0])
+            for match_data in enhanced_matches:
+                if match_data.get('job'):
+                    job = match_data['job']
+                    jobs.append(job)
+                    
+                    # Ensure JobMatch object exists with enhanced analysis data
+                    job_match, created = JobMatch.objects.get_or_create(
+                        job=job,
+                        resume=user_resume,
+                        defaults={
+                            'user': request.user,
+                            'match_score': match_data.get('match_score', 0),
+                            'match_details': match_data.get('match_details', {}),
+                            'matching_skills': match_data.get('matching_skills', []),
+                            'missing_skills': match_data.get('missing_skills', [])
+                        }
+                    )
+                    
+                    # Update existing match with latest enhanced data
+                    if not created:
+                        job_match.match_score = match_data.get('match_score', job_match.match_score)
+                        job_match.match_details = match_data.get('match_details', job_match.match_details)
+                        job_match.matching_skills = match_data.get('matching_skills', job_match.matching_skills)
+                        job_match.missing_skills = match_data.get('missing_skills', job_match.missing_skills)
+                        job_match.save()
+            
+            # If no enhanced matches found, fallback to legacy matcher
+            if not jobs:
+                job_matches = job_matcher.find_matching_jobs(search_query=search_query, location=location)
+                
+                # Ensure job_matches is not None before processing
+                if job_matches is None:
+                    job_matches = []
+                    messages.warning(request, "No matches returned. Please try different search terms.")
+                
+                # Extract jobs from legacy matcher
+                for match in job_matches:
+                    if isinstance(match, tuple) and len(match) >= 3 and match[0] is not None:
+                        jobs.append(match[0])
             
             job_search.total_found = len(jobs)
             job_search.jobs_analyzed = len(jobs)
@@ -140,9 +188,22 @@ def ai_job_matches_view(request):
     page_number = request.GET.get('page', 1)
     jobs_page = paginator.get_page(page_number)
     
+    # Get job matches for the current page of jobs
+    job_matches_dict = {}
+    if jobs_page:
+        job_ids = [job.id for job in jobs_page]
+        job_matches = JobMatch.objects.filter(
+            job_id__in=job_ids, 
+            resume=user_resume
+        ).select_related('job')
+        
+        for match in job_matches:
+            job_matches_dict[match.job.id] = match
+    
     context = {
         'user_resume': user_resume,
         'jobs': jobs_page,
+        'job_matches_dict': job_matches_dict,
         'search_performed': search_performed,
         'search_query': search_query,
         'location': location

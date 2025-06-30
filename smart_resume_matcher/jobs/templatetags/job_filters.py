@@ -99,3 +99,17 @@ def match_score_class(score):
             return 'bg-danger'
     except (ValueError, TypeError):
         return 'bg-secondary'
+
+@register.filter(name='get_item')
+def get_item(dictionary, key):
+    """
+    Get item from dictionary by key
+    Usage: {{ dictionary|get_item:key }}
+    """
+    if not dictionary:
+        return None
+    
+    try:
+        return dictionary.get(key)
+    except (AttributeError, TypeError):
+        return None

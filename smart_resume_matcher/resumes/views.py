@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.utils import timezone
 from django.apps import apps
 from .forms import ResumeUploadForm
-from .utils import AIAnalyzer
-from jobs.services import JobMatcher
+from .enhanced_analyzer import EnhancedAIAnalyzer
+from .enhanced_job_matcher import EnhancedJobMatcher
 
 # Dynamically load models to avoid circular imports
 Resume = apps.get_model('resumes', 'Resume')
@@ -38,8 +38,8 @@ def analyze_resume(resume_id):
         return False
     
     try:
-        # Initialize AI analyzer
-        analyzer = AIAnalyzer()
+        # Initialize Enhanced AI analyzer
+        analyzer = EnhancedAIAnalyzer()
         
         # Extract text from PDF
         try:
@@ -52,18 +52,23 @@ def analyze_resume(resume_id):
         # Save the raw text first
         resume.save(update_fields=['raw_text'])
             
-        # Analyze the resume - this will use fallback if AI isn't available
+        # Analyze the resume using the enhanced analyzer
         analysis_results = analyzer.analyze_resume(resume.raw_text)
         
-        # Update resume with analysis results in a single transaction
+        # Update resume with enhanced analysis results in a single transaction
         with transaction.atomic():
             resume.refresh_from_db()
-            resume.extracted_skills = analysis_results.get('skills', [])
+            
+            # Store the new enhanced analysis format
+            resume.extracted_skills = analysis_results.get('extracted_skills', [])
             resume.experience_level = analysis_results.get('experience_level', '')
             resume.job_titles = analysis_results.get('job_titles', [])
             resume.education = analysis_results.get('education', [])
             resume.work_experience = analysis_results.get('work_experience', [])
-            resume.analysis_summary = analysis_results.get('summary', '')
+            
+            # Store the full enhanced analysis as JSON for the profile page
+            import json
+            resume.analysis_summary = json.dumps(analysis_results) if isinstance(analysis_results, dict) else analysis_results
             resume.confidence_score = analysis_results.get('confidence_score', 0.0)
             
             # Update status
@@ -71,11 +76,12 @@ def analyze_resume(resume_id):
             resume.analysis_completed_at = timezone.now()
             resume.save()
         
-        # Find matching jobs - wrap in try/except to ensure process completes
+        # Find matching jobs using enhanced matcher
         try:
-            find_matching_jobs(resume)
+            enhanced_matcher = EnhancedJobMatcher(resume.user, resume)
+            enhanced_matcher.find_and_create_job_matches()
         except Exception as e:
-            logger.error(f"Error finding matching jobs: {e}")
+            logger.error(f"Error finding matching jobs with enhanced matcher: {e}")
             # Don't fail the whole process if job matching fails
         
         return True
