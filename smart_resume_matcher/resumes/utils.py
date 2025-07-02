@@ -1,5 +1,7 @@
 import PyPDF2
 import requests
+import re
+import os
 from django.conf import settings
 from typing import Dict, Any
 from .universal_skills import get_all_skills
@@ -7,100 +9,244 @@ from .universal_skills import get_all_skills
 class PDFProcessor:
     @staticmethod
     def extract_text_from_pdf(file_path: str) -> str:
-        """Extract text from PDF file using multiple methods"""
+        """
+        Enhanced PDF text extraction using multiple methods with improved error handling
+        Supports various PDF types: standard, scanned, image-based, complex layouts
+        """
         import logging
+        import os
+        import re
+        
         logger = logging.getLogger(__name__)
         
-        text = ""
-        methods_tried = 0
+        # Validate file exists and is readable
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"PDF file not found: {file_path}")
         
-        # Method 1: Try with PyPDF2 first
-        try:
-            import PyPDF2
-            methods_tried += 1
-            with open(file_path, 'rb') as file:
-                pdf_reader = PyPDF2.PdfReader(file)
-                for page in pdf_reader.pages:
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
-            
-            if text.strip():
-                logger.info("Successfully extracted text using PyPDF2")
-                return text.strip()
-        except Exception as e:
-            logger.warning(f"PyPDF2 extraction failed: {str(e)}")
+        if not os.access(file_path, os.R_OK):
+            raise PermissionError(f"Cannot read PDF file: {file_path}")
         
-        # Method 2: Try with pdfminer.six
-        try:
-            from pdfminer.high_level import extract_text as pdfminer_extract
-            methods_tried += 1
-            text = pdfminer_extract(file_path)
-            
-            if text.strip():
-                logger.info("Successfully extracted text using pdfminer.six")
-                return text.strip()
-        except ImportError:
-            logger.warning("pdfminer.six not installed")
-        except Exception as e:
-            logger.warning(f"pdfminer.six extraction failed: {str(e)}")
+        # Check file size (warn for very large files)
+        file_size = os.path.getsize(file_path) / (1024 * 1024)  # MB
+        if file_size > 50:  # 50MB
+            logger.warning(f"Large PDF file detected: {file_size:.1f}MB - processing may be slow")
         
-        # Method 3: Try with pdfplumber
+        extracted_text = ""
+        methods_tried = []
+        success_method = None
+        
+        # Method 1: Try pdfplumber (best for complex layouts, tables)
         try:
             import pdfplumber
-            methods_tried += 1
+            methods_tried.append("pdfplumber")
+            
             with pdfplumber.open(file_path) as pdf:
-                text = ""
-                for page in pdf.pages:
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
+                text_parts = []
                 
-                if text.strip():
-                    logger.info("Successfully extracted text using pdfplumber")
-                    return text.strip()
+                for page_num, page in enumerate(pdf.pages, 1):
+                    try:
+                        # Extract text with layout preservation
+                        page_text = page.extract_text(layout=True)
+                        
+                        # Try alternative extraction if main method fails
+                        if not page_text or len(page_text.strip()) < 10:
+                            page_text = page.extract_text()
+                        
+                        # Extract table data if present
+                        tables = page.extract_tables()
+                        if tables:
+                            for table in tables:
+                                table_text = "\n".join([" | ".join([cell or "" for cell in row]) for row in table if row])
+                                page_text += f"\n\nTable:\n{table_text}\n"
+                        
+                        if page_text:
+                            text_parts.append(f"--- Page {page_num} ---\n{page_text}")
+                    
+                    except Exception as e:
+                        logger.warning(f"pdfplumber failed on page {page_num}: {e}")
+                        continue
+                
+                if text_parts:
+                    extracted_text = "\n\n".join(text_parts)
+                    success_method = "pdfplumber"
+                    logger.info(f"Successfully extracted text using pdfplumber ({len(extracted_text)} chars)")
+                
         except ImportError:
             logger.warning("pdfplumber not installed")
         except Exception as e:
             logger.warning(f"pdfplumber extraction failed: {str(e)}")
         
-        # Method 4: Last resort - try OCR if available
-        try:
-            import pytesseract
-            from pdf2image import convert_from_path
-            
-            methods_tried += 1
-            logger.info("Attempting OCR extraction with pytesseract")
-            
-            # Check if tesseract is installed
-            tesseract_version = pytesseract.get_tesseract_version()
-            logger.info(f"Tesseract version: {tesseract_version}")
-            
-            images = convert_from_path(file_path)
-            text = ""
-            
-            for image in images:
-                text += pytesseract.image_to_string(image) + "\n"
-            
-            if text.strip():
-                logger.info("Successfully extracted text using OCR")
-                return text.strip()
-        except ImportError:
-            logger.warning("OCR dependencies (pytesseract/pdf2image) not installed")
-        except Exception as e:
-            logger.warning(f"OCR extraction failed: {str(e)}")
+        # Method 2: Try pdfminer.six (good for text-heavy PDFs)
+        if not extracted_text.strip():
+            try:
+                from pdfminer.high_level import extract_text as pdfminer_extract
+                from pdfminer.layout import LAParams
+                
+                methods_tried.append("pdfminer.six")
+                
+                # Use layout analysis parameters for better text extraction
+                laparams = LAParams(
+                    line_margin=0.5,
+                    word_margin=0.1,
+                    char_margin=2.0,
+                    boxes_flow=0.5
+                )
+                
+                text = pdfminer_extract(file_path, laparams=laparams)
+                
+                if text and text.strip():
+                    extracted_text = text
+                    success_method = "pdfminer.six"
+                    logger.info(f"Successfully extracted text using pdfminer.six ({len(extracted_text)} chars)")
+                
+            except ImportError:
+                logger.warning("pdfminer.six not installed")
+            except Exception as e:
+                logger.warning(f"pdfminer.six extraction failed: {str(e)}")
         
-        # If all methods failed, provide diagnostic info and raise exception
-        if methods_tried == 0:
-            logger.error("No PDF extraction methods available - install PyPDF2, pdfminer.six, pdfplumber, or pytesseract+pdf2image")
-            raise RuntimeError("No PDF extraction methods available")
-        elif not text.strip():
-            logger.error(f"All {methods_tried} PDF extraction methods failed - the PDF may be secured, scanned, or corrupted")
+        # Method 3: Try PyPDF2 (fallback for simple PDFs)
+        if not extracted_text.strip():
+            try:
+                import PyPDF2
+                methods_tried.append("PyPDF2")
+                
+                with open(file_path, 'rb') as file:
+                    pdf_reader = PyPDF2.PdfReader(file)
+                    text_parts = []
+                    
+                    for page_num, page in enumerate(pdf_reader.pages, 1):
+                        try:
+                            page_text = page.extract_text()
+                            if page_text:
+                                text_parts.append(f"--- Page {page_num} ---\n{page_text}")
+                        except Exception as e:
+                            logger.warning(f"PyPDF2 failed on page {page_num}: {e}")
+                            continue
+                    
+                    if text_parts:
+                        extracted_text = "\n\n".join(text_parts)
+                        success_method = "PyPDF2"
+                        logger.info(f"Successfully extracted text using PyPDF2 ({len(extracted_text)} chars)")
+                
+            except Exception as e:
+                logger.warning(f"PyPDF2 extraction failed: {str(e)}")
+        
+        # Method 4: OCR for scanned/image-based PDFs
+        if not extracted_text.strip() or len(extracted_text.strip()) < 50:
+            try:
+                import pytesseract
+                from pdf2image import convert_from_path
+                from PIL import Image
+                
+                methods_tried.append("OCR (pytesseract)")
+                logger.info("Attempting OCR extraction for scanned/image-based PDF")
+                
+                # Configure OCR settings
+                custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?@#$%^&*()[]{}|;:\'\"+-=_/\\ \n\t'
+                
+                # Convert PDF to images with higher resolution for better OCR
+                images = convert_from_path(
+                    file_path, 
+                    dpi=300,  # Higher DPI for better OCR results
+                    first_page=1,
+                    last_page=None if file_size < 10 else 5  # Limit pages for large files
+                )
+                
+                ocr_text_parts = []
+                for page_num, image in enumerate(images, 1):
+                    try:
+                        # Preprocess image for better OCR
+                        # Convert to grayscale and enhance contrast
+                        if image.mode != 'L':
+                            image = image.convert('L')
+                        
+                        # Extract text using OCR
+                        page_text = pytesseract.image_to_string(image, config=custom_config)
+                        
+                        if page_text and page_text.strip():
+                            ocr_text_parts.append(f"--- Page {page_num} (OCR) ---\n{page_text}")
+                    
+                    except Exception as e:
+                        logger.warning(f"OCR failed on page {page_num}: {e}")
+                        continue
+                
+                if ocr_text_parts:
+                    ocr_text = "\n\n".join(ocr_text_parts)
+                    # If we had some text from other methods, combine them
+                    if extracted_text.strip():
+                        extracted_text = f"{extracted_text}\n\n--- OCR Enhancement ---\n{ocr_text}"
+                    else:
+                        extracted_text = ocr_text
+                    success_method = f"{success_method or 'None'} + OCR"
+                    logger.info(f"OCR extracted additional text ({len(ocr_text)} chars)")
+                
+            except ImportError:
+                logger.warning("OCR dependencies (pytesseract/pdf2image) not installed")
+            except Exception as e:
+                logger.warning(f"OCR extraction failed: {str(e)}")
+        
+        # Post-process and validate extracted text
+        if extracted_text:
+            # Clean up the text
+            extracted_text = PDFProcessor._clean_extracted_text(extracted_text)
             
-            # Return a placeholder for testing purposes
-            return "This appears to be an empty or unreadable PDF. Please ensure the PDF contains extractable text."
+            # Validate the text quality
+            if len(extracted_text.strip()) < 20:
+                logger.warning("Extracted text is very short - PDF may be mostly images or empty")
             
-        return text.strip()
+            # Check for gibberish text (common with bad OCR)
+            word_count = len(extracted_text.split())
+            char_count = len(extracted_text.replace(' ', '').replace('\n', ''))
+            if word_count > 0 and char_count / word_count > 15:  # Average word length > 15 chars
+                logger.warning("Extracted text may contain OCR errors - very long 'words' detected")
+            
+            logger.info(f"Final extraction successful using {success_method}: {len(extracted_text)} characters, {word_count} words")
+            return extracted_text
+        
+        # If all methods failed
+        error_msg = f"All PDF extraction methods failed. Tried: {', '.join(methods_tried)}"
+        logger.error(error_msg)
+        
+        # Provide helpful error message based on what was attempted
+        if "OCR" not in methods_tried:
+            error_msg += "\nSuggestion: This may be a scanned PDF. Install pytesseract and pdf2image for OCR support."
+        
+        # Return a descriptive error message instead of raising exception
+        # This allows the application to continue with fallback analysis
+        return f"PDF_EXTRACTION_FAILED: {error_msg}\n\nPlease ensure the PDF contains readable text and is not password-protected."
+    
+    @staticmethod
+    def _clean_extracted_text(text: str) -> str:
+        """Clean and normalize extracted PDF text"""
+        if not text:
+            return ""
+        
+        # Remove excessive whitespace while preserving structure
+        text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)  # Multiple blank lines to double
+        text = re.sub(r'[ \t]+', ' ', text)  # Multiple spaces/tabs to single space
+        text = re.sub(r'\n ', '\n', text)  # Remove spaces at line start
+        text = re.sub(r' \n', '\n', text)  # Remove spaces at line end
+        
+        # Fix common OCR errors
+        text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)  # Add space between camelCase
+        text = re.sub(r'(\d)([A-Za-z])', r'\1 \2', text)  # Add space between number and letter
+        text = re.sub(r'([A-Za-z])(\d)', r'\1 \2', text)  # Add space between letter and number
+        
+        # Remove page headers/footers (common patterns)
+        lines = text.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            # Skip likely header/footer lines
+            if (len(line) < 3 or 
+                re.match(r'^Page \d+', line, re.IGNORECASE) or
+                re.match(r'^\d+$', line) or  # Page numbers
+                re.match(r'^[A-Za-z\s]+\|\s*Page \d+', line)):  # "Document | Page X"
+                continue
+            cleaned_lines.append(line)
+        
+        return '\n'.join(cleaned_lines).strip()
 
 class AIAnalyzer:
     def __init__(self):

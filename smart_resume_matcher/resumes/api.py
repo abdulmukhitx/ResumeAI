@@ -138,6 +138,11 @@ def resume_status_api(request, resume_id):
             'analysis_completed_at': resume.analysis_completed_at.isoformat() if resume.analysis_completed_at else None,
             'skills_count': len(resume.extracted_skills) if resume.extracted_skills else 0,
             'has_summary': bool(resume.analysis_summary),
+            'has_extraction_issues': getattr(resume, 'has_extraction_issues', False),
+            'error_message': getattr(resume, 'error_message', ''),
+            'error_type': getattr(resume, 'error_type', ''),
+            'warning_message': getattr(resume, 'warning_message', ''),
+            'suggestions': getattr(resume, 'suggestions', []),
         })
         
     except Exception as e:

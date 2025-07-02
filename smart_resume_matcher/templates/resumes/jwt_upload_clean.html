@@ -36,6 +36,19 @@
         color: #667eea;
         margin-bottom: 1rem;
     }
+    
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    
+    details summary {
+        cursor: pointer;
+        outline: none;
+    }
+    
+    details[open] summary {
+        margin-bottom: 0.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -112,13 +125,40 @@
                     
                     <!-- Success Message -->
                     <div id="upload-success" class="alert alert-success mt-4" style="display: none;">
-                        <h5><i class="fas fa-check-circle me-2"></i>Resume uploaded successfully!</h5>
-                        <p>Your resume has been analyzed. You can now:</p>
+                        <div id="success-content">
+                            <h5><i class="fas fa-check-circle me-2"></i>Resume uploaded successfully!</h5>
+                            <p class="mb-3">Your resume has been analyzed. You can now:</p>
+                        </div>
+                        
+                        <!-- Analysis Warning (for extraction issues) -->
+                        <div id="analysis-warning" class="alert alert-warning mt-3" style="display: none;">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Analysis Issue</h6>
+                            <p id="warning-message" class="mb-2"></p>
+                            <details>
+                                <summary class="cursor-pointer text-primary">What can I do?</summary>
+                                <ul id="warning-suggestions" class="mt-2 mb-0">
+                                    <!-- Suggestions will be populated here -->
+                                </ul>
+                            </details>
+                        </div>
+                        
+                        <!-- Analysis Error (for complete failures) -->
+                        <div id="analysis-error" class="alert alert-danger mt-3" style="display: none;">
+                            <h6><i class="fas fa-times-circle me-2"></i>Analysis Failed</h6>
+                            <p id="error-message" class="mb-2"></p>
+                            <details>
+                                <summary class="cursor-pointer text-primary">Troubleshooting suggestions</summary>
+                                <ul id="error-suggestions" class="mt-2 mb-0">
+                                    <!-- Suggestions will be populated here -->
+                                </ul>
+                            </details>
+                        </div>
+                        
                         <div class="d-flex gap-2 flex-wrap">
                             <a href="{% url 'jwt_profile' %}" class="btn btn-primary">
                                 <i class="fas fa-user me-1"></i> View Profile
                             </a>
-                            <a href="/jobs/" class="btn btn-outline-primary">
+                            <a href="/jobs/" class="btn btn-outline-primary" id="browse-jobs-btn">
                                 <i class="fas fa-briefcase me-1"></i> Browse Job Matches
                             </a>
                             <button type="button" class="btn btn-outline-secondary" onclick="resetUploadForm()">
@@ -364,34 +404,176 @@ function setupResumeUploadForm() {
             progressDiv.style.display = '';
             hideError();
             
-            // Simulate upload progress
+            // Start progress simulation
             const progressBar = progressDiv.querySelector('.progress-bar');
             let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 30;
-                if (progress > 90) progress = 90;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 85) progress = 85;
                 progressBar.style.width = progress + '%';
             }, 200);
             
-            // Simulate upload (implement actual upload later)
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('original_filename', file.name);
             
-            // Complete progress
-            clearInterval(interval);
+            // Get JWT token
+            const token = window.authManager ? window.authManager.getToken() : null;
+            if (!token) {
+                throw new Error('Authentication required. Please log in again.');
+            }
+            
+            // Upload file
+            const uploadResponse = await fetch('/api/resume/upload/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            const uploadResult = await uploadResponse.json();
+            
+            if (!uploadResponse.ok) {
+                throw new Error(uploadResult.message || uploadResult.error || 'Upload failed');
+            }
+            
+            const resumeId = uploadResult.resume_id;
+            
+            // Complete upload progress
+            clearInterval(progressInterval);
             progressBar.style.width = '100%';
+            uploadBtn.innerHTML = '<i class="fas fa-cog fa-spin me-2"></i> Analyzing...';
             
-            // Show success
-            setTimeout(() => {
-                progressDiv.style.display = 'none';
-                successDiv.style.display = '';
-                uploadBtn.innerHTML = '<i class="fas fa-check me-2"></i> Upload Complete';
-            }, 500);
+            // Poll for analysis completion
+            await pollAnalysisStatus(resumeId, token);
             
         } catch (error) {
             console.error('Upload error:', error);
-            showError('Upload failed. Please try again.');
+            showError(error.message || 'Upload failed. Please try again.');
             resetUploadButton();
         }
+    }
+    
+    async function pollAnalysisStatus(resumeId, token) {
+        const maxAttempts = 60; // 2 minutes max
+        let attempts = 0;
+        
+        while (attempts < maxAttempts) {
+            try {
+                const response = await fetch(`/api/resume/status/${resumeId}/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to check analysis status');
+                }
+                
+                const result = await response.json();
+                
+                if (result.status === 'completed') {
+                    // Analysis completed successfully
+                    showAnalysisComplete(result, false);
+                    return;
+                } else if (result.status === 'completed_with_warnings') {
+                    // Analysis completed but with warnings
+                    showAnalysisComplete(result, true);
+                    return;
+                } else if (result.status === 'failed') {
+                    // Analysis failed
+                    showAnalysisError(result);
+                    return;
+                } else if (result.status === 'processing') {
+                    // Still processing, continue polling
+                    attempts++;
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+                    continue;
+                } else {
+                    // Unknown status, keep waiting
+                    attempts++;
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    continue;
+                }
+                
+            } catch (error) {
+                console.error('Status check error:', error);
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    showError('Analysis is taking longer than expected. Please refresh the page to check status.');
+                    resetUploadButton();
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
+        
+        // Timeout reached
+        showError('Analysis timed out. Please refresh the page to check status.');
+        resetUploadButton();
+    }
+    
+    function showAnalysisComplete(result, hasWarnings) {
+        progressDiv.style.display = 'none';
+        successDiv.style.display = '';
+        uploadBtn.innerHTML = '<i class="fas fa-check me-2"></i> Analysis Complete';
+        
+        if (hasWarnings) {
+            // Show warning about extraction issues
+            const warningDiv = document.getElementById('analysis-warning');
+            const warningMessage = document.getElementById('warning-message');
+            const warningSuggestions = document.getElementById('warning-suggestions');
+            
+            warningMessage.textContent = result.warning_message || 'Some text may not have been extracted properly from your PDF.';
+            
+            // Populate suggestions
+            warningSuggestions.innerHTML = '';
+            const suggestions = result.suggestions || [
+                'Ensure your PDF contains selectable text (not just scanned images)',
+                'Try using a PDF with a simpler layout',
+                'Check if the PDF was created from a text document rather than scanned'
+            ];
+            
+            suggestions.forEach(suggestion => {
+                const li = document.createElement('li');
+                li.textContent = suggestion;
+                warningSuggestions.appendChild(li);
+            });
+            
+            warningDiv.style.display = '';
+        }
+    }
+    
+    function showAnalysisError(result) {
+        progressDiv.style.display = 'none';
+        successDiv.style.display = '';
+        uploadBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Analysis Issue';
+        
+        // Show error details
+        const errorDiv = document.getElementById('analysis-error');
+        const errorMessage = document.getElementById('error-message');
+        const errorSuggestions = document.getElementById('error-suggestions');
+        
+        errorMessage.textContent = result.error_message || 'Unable to analyze your resume properly.';
+        
+        // Populate suggestions
+        errorSuggestions.innerHTML = '';
+        const suggestions = result.suggestions || [
+            'Ensure the PDF contains readable text',
+            'Check if the PDF is password-protected',
+            'Try uploading a different version of your resume',
+            'Make sure the file is not corrupted'
+        ];
+        
+        suggestions.forEach(suggestion => {
+            const li = document.createElement('li');
+            li.textContent = suggestion;
+            errorSuggestions.appendChild(li);
+        });
+        
+        errorDiv.style.display = '';
     }
     
     function showError(message) {
@@ -451,6 +633,27 @@ function resetUploadForm() {
     `;
 }
 
+// Handle job browsing with JWT authentication
+function setupJobBrowsingLink() {
+    const browsejobsBtn = document.getElementById('browse-jobs-btn');
+    if (browsejobsBtn) {
+        browsejobsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Check if user is authenticated
+            if (!window.authManager || !window.authManager.isAuthenticated()) {
+                console.warn('User not authenticated for job browsing');
+                window.location.href = '/login/?next=/jobs/';
+                return;
+            }
+            
+            // Navigate to jobs page (middleware will handle JWT authentication)
+            console.log('Navigating to jobs page with JWT authentication');
+            window.location.href = '/jobs/';
+        });
+    }
+}
+
 // Listen for authentication events
 window.addEventListener('auth:login', function(event) {
     console.log('User logged in, reinitializing upload...');
@@ -461,6 +664,11 @@ window.addEventListener('auth:login', function(event) {
 window.addEventListener('auth:logout', function(event) {
     console.log('User logged out, showing guest content...');
     showGuestContent();
+});
+
+// Setup job browsing link when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setupJobBrowsingLink();
 });
 </script>
 {% endblock %}

@@ -44,13 +44,23 @@ def analyze_resume(resume_id):
         # Extract text from PDF
         try:
             resume.raw_text = analyzer.extract_text_from_pdf(resume.file.path)
+            
+            # Check if extraction failed
+            if resume.raw_text.startswith(("PDF_EXTRACTION_FAILED:", "PDF_EXTRACTION_ERROR:", "PDF_EXTRACTION_WARNING:")):
+                logger.warning(f"PDF extraction issue for resume {resume_id}: {resume.raw_text[:100]}...")
+                # Still proceed with analysis, but mark the issue
+                resume.has_extraction_issues = True
+            else:
+                resume.has_extraction_issues = False
+                
         except Exception as e:
             logger.error(f"Error extracting text from PDF: {e}")
-            # If PDF extraction fails, set a placeholder and continue
-            resume.raw_text = "Error extracting text from resume."
+            # If PDF extraction fails, set a descriptive error message
+            resume.raw_text = f"PDF_EXTRACTION_ERROR: Failed to extract text from PDF. Error: {str(e)}"
+            resume.has_extraction_issues = True
         
         # Save the raw text first
-        resume.save(update_fields=['raw_text'])
+        resume.save(update_fields=['raw_text', 'has_extraction_issues'])
             
         # Analyze the resume using the enhanced analyzer
         analysis_results = analyzer.analyze_resume(resume.raw_text)
@@ -58,6 +68,17 @@ def analyze_resume(resume_id):
         # Update resume with enhanced analysis results in a single transaction
         with transaction.atomic():
             resume.refresh_from_db()
+            
+            # Check if analysis detected errors
+            if analysis_results.get('error', False):
+                logger.warning(f"Analysis failed for resume {resume_id}: {analysis_results.get('error_message', 'Unknown error')}")
+                resume.status = 'failed'
+                resume.error_message = analysis_results.get('error_message', 'Analysis failed')
+                resume.error_type = analysis_results.get('error_type', 'analysis_error')
+                resume.suggestions = analysis_results.get('suggestions', [])
+                resume.analysis_completed_at = timezone.now()
+                resume.save()
+                return False
             
             # Store the new enhanced analysis format
             resume.extracted_skills = analysis_results.get('extracted_skills', [])
@@ -71,8 +92,13 @@ def analyze_resume(resume_id):
             resume.analysis_summary = json.dumps(analysis_results) if isinstance(analysis_results, dict) else analysis_results
             resume.confidence_score = analysis_results.get('confidence_score', 0.0)
             
-            # Update status
-            resume.status = 'completed'
+            # Update status based on extraction issues
+            if resume.has_extraction_issues:
+                resume.status = 'completed_with_warnings'
+                resume.warning_message = "Resume analysis completed, but some text may not have been extracted properly from the PDF."
+            else:
+                resume.status = 'completed'
+                
             resume.analysis_completed_at = timezone.now()
             resume.save()
         
@@ -98,44 +124,85 @@ def find_matching_jobs(resume):
     Find jobs matching the resume.
     In a production app, this would be a Celery task.
     """
-    # Get active jobs
-    active_jobs = Job.objects.filter(is_active=True)
+    import logging
+    from jobs.job_matcher import JobMatcher
+    from django.db import transaction
     
-    # Prepare resume data
-    resume_data = {
-        'extracted_skills': resume.extracted_skills,
-        'experience_level': resume.experience_level,
-        'job_titles': resume.job_titles
-    }
+    logger = logging.getLogger(__name__)
     
-    # Initialize job matcher
-    matcher = JobMatcher()
-    
-    # Dynamically import JobMatch model to avoid circular imports
-    JobMatch = apps.get_model('jobs', 'JobMatch')
-    
-    # Match jobs
-    for job in active_jobs:
-        job_data = {
-            'title': job.title,
-            'required_skills': job.required_skills,
-            'experience_required': job.experience_required
-        }
+    try:
+        # Get active jobs
+        active_jobs = Job.objects.filter(is_active=True)
         
-        # Calculate match score
-        match_result = matcher.calculate_match_score(resume_data, job_data)
+        if not active_jobs.exists():
+            logger.info("No active jobs found in database")
+            return
         
-        # Create or update JobMatch record
-        job_match, created = JobMatch.objects.update_or_create(
-            job=job,
-            resume=resume,
-            user=resume.user,
-            defaults={
-                'match_score': match_result['overall_score'] * 100,  # Convert to percentage
-                'matching_skills': match_result['matched_skills'],
-                'missing_skills': match_result['missing_skills'],
-                'match_details': match_result
-            }
-        )
+        # Initialize job matcher with user and resume
+        matcher = JobMatcher(user=resume.user, resume=resume)
         
-        # Create or update JobMatch record (implementation depends on your model structure)
+        # Dynamically import JobMatch model to avoid circular imports
+        JobMatch = apps.get_model('jobs', 'JobMatch')
+        
+        # Match jobs
+        matches_created = 0
+        for job in active_jobs:
+            try:
+                # Prepare job data in the format expected by JobMatcher
+                job_data = {
+                    'name': job.title,
+                    'snippet': {
+                        'requirement': job.requirements or '',
+                        'responsibility': job.responsibilities or ''
+                    },
+                    'description': job.description,
+                    'employer': {
+                        'name': job.company_name
+                    },
+                    'salary': {
+                        'from': job.salary_from,
+                        'to': job.salary_to,
+                        'currency': job.salary_currency
+                    },
+                    'area': {
+                        'name': job.location
+                    },
+                    'experience': {
+                        'name': job.experience_required or ''
+                    }
+                }
+                
+                # Calculate match score using the JobMatcher
+                match_score, match_details = matcher.calculate_match_score(job_data)
+                
+                # Only create matches with meaningful scores (above 20%)
+                if match_score >= 20:
+                    # Create or update JobMatch record
+                    with transaction.atomic():
+                        job_match, created = JobMatch.objects.update_or_create(
+                            job=job,
+                            resume=resume,
+                            user=resume.user,
+                            defaults={
+                                'match_score': match_score,
+                                'matching_skills': match_details.get('matching_skills', []),
+                                'missing_skills': match_details.get('missing_skills', []),
+                                'match_details': match_details
+                            }
+                        )
+                        
+                        if created:
+                            matches_created += 1
+                            logger.debug(f"Created job match: {job.title} ({match_score:.1f}%)")
+                        else:
+                            logger.debug(f"Updated job match: {job.title} ({match_score:.1f}%)")
+                            
+            except Exception as e:
+                logger.error(f"Error matching job {job.id} ({job.title}): {e}")
+                continue
+        
+        logger.info(f"Job matching completed. Created {matches_created} new matches for resume {resume.id}")
+        
+    except Exception as e:
+        logger.error(f"Error in find_matching_jobs for resume {resume.id}: {e}")
+        raise

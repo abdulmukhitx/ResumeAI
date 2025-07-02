@@ -78,8 +78,30 @@ class EnhancedAIAnalyzer:
         }
 
     def extract_text_from_pdf(self, file_path: str) -> str:
-        """Extract text from PDF file"""
-        return PDFProcessor.extract_text_from_pdf(file_path)
+        """
+        Enhanced PDF text extraction with robust error handling
+        """
+        try:
+            extracted_text = PDFProcessor.extract_text_from_pdf(file_path)
+            
+            # Check if extraction failed
+            if extracted_text.startswith("PDF_EXTRACTION_FAILED:"):
+                logger.warning(f"PDF extraction failed: {extracted_text}")
+                # Return the error message for better user feedback
+                return extracted_text
+            
+            # Validate extracted text quality
+            if len(extracted_text.strip()) < 20:
+                logger.warning("Extracted text is very short - possible extraction issue")
+                return f"PDF_EXTRACTION_WARNING: Only {len(extracted_text)} characters extracted. Text may be incomplete.\n\n{extracted_text}"
+            
+            logger.info(f"Successfully extracted {len(extracted_text)} characters from PDF")
+            return extracted_text
+            
+        except Exception as e:
+            error_msg = f"PDF_EXTRACTION_ERROR: Unexpected error during PDF processing: {str(e)}"
+            logger.error(error_msg)
+            return error_msg
 
     def enhanced_skill_extraction(self, text: str) -> Dict[str, List[str]]:
         """
@@ -236,9 +258,14 @@ class EnhancedAIAnalyzer:
 
     def analyze_resume(self, resume_text: str) -> Dict[str, Any]:
         """
-        Enhanced resume analysis with improved AI prompts and fallback
+        Enhanced resume analysis with improved AI prompts and robust fallback
         """
         logger.info("Starting enhanced resume analysis")
+        
+        # Check if text extraction failed
+        if resume_text.startswith(("PDF_EXTRACTION_FAILED:", "PDF_EXTRACTION_ERROR:", "PDF_EXTRACTION_WARNING:")):
+            logger.warning("PDF extraction had issues, using limited analysis")
+            return self._handle_extraction_failure(resume_text)
         
         # First, try enhanced AI analysis
         if self.api_key and self.api_key != 'your-groq-api-key':
@@ -249,6 +276,43 @@ class EnhancedAIAnalyzer:
         
         # Use enhanced fallback analysis
         return self._enhanced_fallback_analysis(resume_text)
+    
+    def _handle_extraction_failure(self, error_text: str) -> Dict[str, Any]:
+        """
+        Handle cases where PDF extraction failed
+        """
+        # Extract any partial text that might be available
+        if "PDF_EXTRACTION_WARNING:" in error_text:
+            # Some text was extracted, try to analyze it
+            actual_text = error_text.split("PDF_EXTRACTION_WARNING:")[1].strip()
+            if len(actual_text) > 50:
+                logger.info("Attempting analysis with partially extracted text")
+                return self._enhanced_fallback_analysis(actual_text)
+        
+        # Return error analysis result
+        return {
+            'error': True,
+            'error_type': 'pdf_extraction_failed',
+            'error_message': 'Unable to extract readable text from PDF. The file may be scanned, password-protected, or corrupted.',
+            'suggestions': [
+                'Ensure the PDF contains selectable text (not just scanned images)',
+                'Check if the PDF is password-protected or corrupted',
+                'Try converting the PDF to a different format',
+                'If the resume is scanned, consider using a PDF with OCR text layer'
+            ],
+            'extracted_skills': [],
+            'programming_languages': [],
+            'frameworks_libraries': [],
+            'databases': [],
+            'cloud_platforms': [],
+            'tools_technologies': [],
+            'experience_level': 'unknown',
+            'years_of_experience': 0,
+            'tech_stack_focus': 'Unable to determine',
+            'specialization': 'Unable to determine',
+            'confidence_score': 0.0,
+            'analysis_status': 'failed_pdf_extraction'
+        }
 
     def _enhanced_ai_analysis(self, resume_text: str) -> Dict[str, Any]:
         """

@@ -13,6 +13,7 @@ class Resume(models.Model):
         ('pending', 'Pending Analysis'),
         ('processing', 'Processing'),
         ('completed', 'Analysis Completed'),
+        ('completed_with_warnings', 'Completed with Warnings'),
         ('failed', 'Analysis Failed'),
     ]
     
@@ -25,9 +26,16 @@ class Resume(models.Model):
     original_filename = models.CharField(max_length=255)
     
     # Analysis status
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     analysis_started_at = models.DateTimeField(null=True, blank=True)
     analysis_completed_at = models.DateTimeField(null=True, blank=True)
+    
+    # Error handling
+    has_extraction_issues = models.BooleanField(default=False)
+    error_message = models.TextField(blank=True)
+    error_type = models.CharField(max_length=50, blank=True)
+    warning_message = models.TextField(blank=True)
+    suggestions = models.JSONField(default=list, blank=True)
     
     # Extracted content
     raw_text = models.TextField(blank=True)

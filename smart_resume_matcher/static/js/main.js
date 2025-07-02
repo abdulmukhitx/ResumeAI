@@ -376,3 +376,47 @@ function toggleSkillsSection(sectionId) {
         }
     }
 }
+
+// JWT Navigation Helper Functions
+window.jwtNavigation = {
+    /**
+     * Navigate to a URL with JWT authentication support
+     */
+    navigateWithAuth: function(url) {
+        // Check if user is authenticated
+        if (!window.authManager || !window.authManager.isAuthenticated()) {
+            console.warn('User not authenticated, redirecting to login');
+            window.location.href = `/login/?next=${encodeURIComponent(url)}`;
+            return;
+        }
+        
+        // Navigate normally - middleware will handle JWT authentication
+        console.log('Navigating with JWT authentication to:', url);
+        window.location.href = url;
+    },
+    
+    /**
+     * Setup JWT-aware links on the page
+     */
+    setupJWTLinks: function() {
+        // Find all links that need JWT authentication
+        const jwtLinks = document.querySelectorAll('a[data-jwt-required="true"]');
+        
+        jwtLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                window.jwtNavigation.navigateWithAuth(url);
+            });
+        });
+        
+        console.log(`Setup ${jwtLinks.length} JWT-aware navigation links`);
+    }
+};
+
+// Initialize JWT navigation when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.jwtNavigation) {
+        window.jwtNavigation.setupJWTLinks();
+    }
+});

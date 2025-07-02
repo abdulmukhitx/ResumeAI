@@ -1,15 +1,41 @@
 import os
-from decouple import config
 from pathlib import Path
 from datetime import timedelta
 
+import dj_database_url
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me')  # Will be overridden by Render environment variable
+SECRET_KEY = config('SECRET_KEY', default='m#5)4!f-=#cwr520sa@69-!th946x%xv-pzv(pp1(9_an7c9yi')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = ['*'] if DEBUG else ['.render.com', config('ALLOWED_HOSTS', default='localhost')]
+
+# Railway and production hosting
+RAILWAY_STATIC_URL = config('RAILWAY_STATIC_URL', default=None)
+RAILWAY_PUBLIC_DOMAIN = config('RAILWAY_PUBLIC_DOMAIN', default=None)
+
+# Allowed hosts configuration
+ALLOWED_HOSTS = []
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    # Production hosts
+    ALLOWED_HOSTS.extend([
+        '.railway.app',
+        '.render.com',
+        'localhost',
+        '127.0.0.1',
+    ])
+    
+    # Add Railway domain if available
+    if RAILWAY_PUBLIC_DOMAIN:
+        ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+    
+    # Add custom allowed hosts from environment
+    custom_hosts = config('ALLOWED_HOSTS', default='')
+    if custom_hosts:
+        ALLOWED_HOSTS.extend(custom_hosts.split(','))
 
 # Application definition
 DJANGO_APPS = [
@@ -48,7 +74,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'accounts.middleware.JWTAuthenticationMiddleware',  # Add JWT authentication middleware
+    'accounts.middleware.JWTAuthenticationMiddleware',  # JWT auth for views
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -73,42 +99,54 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database - PostgreSQL Configuration
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'jobpilot',
-        'USER': 'abdulmukhit',
-        'PASSWORD': 'acernitrO5',
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'OPTIONS': {
-            'connect_timeout': 10,
-        },
+# Database configuration
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    # Production: Use PostgreSQL from DATABASE_URL
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-}
-
-# We're using SQLite, so we ignore DATABASE_URL even if it's set
-# This avoids any PostgreSQL connection attempts
-# DATABASE_URL = os.environ.get('DATABASE_URL')
-# Commented out to prevent using PostgreSQL in any environment
-
-# Redis and Celery
-REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
-
-# Caching
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': REDIS_URL,
+else:
+    # Development: Use SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+
+# Redis and Celery (optional for basic functionality)
+REDIS_URL = config('REDIS_URL', default=None)
+
+if REDIS_URL:
+    # Production: Use Redis for caching and Celery
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
+    CELERY_ACCEPT_CONTENT = ['json']
+    CELERY_TASK_SERIALIZER = 'json'
+    CELERY_RESULT_SERIALIZER = 'json'
+    CELERY_TIMEZONE = 'UTC'
+    
+    # Caching with Redis
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+        }
+    }
+else:
+    # Development/Simple deployment: Use dummy cache and sync tasks
+    CELERY_TASK_ALWAYS_EAGER = True  # Execute tasks synchronously
+    CELERY_TASK_EAGER_PROPAGATES = True
+    
+    # Simple file-based caching
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': BASE_DIR / 'django_cache',
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -142,6 +180,14 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# AI and API Settings
+GROQ_API_KEY = config('GROQ_API_KEY', default='test-key-for-development')
+GROQ_API_URL = config('GROQ_API_URL', default='https://api.groq.com/openai/v1/chat/completions')
+
+# HeadHunter (HH.ru) API Settings for job fetching
+HH_API_BASE_URL = config('HH_API_BASE_URL', default='https://api.hh.ru')
+HH_API_USER_AGENT = config('HH_API_USER_AGENT', default='Smart Resume Matcher (contact@example.com)')
+
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -150,81 +196,61 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default backend for email/username auth
 ]
 
-# Login/Logout URLs
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/login/'
-
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 # REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
 
-# Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
 # JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Access token expires in 1 hour
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # Refresh token expires in 7 days
-    'ROTATE_REFRESH_TOKENS': True,                   # Generate new refresh token on each refresh
-    'BLACKLIST_AFTER_ROTATION': True,               # Blacklist old refresh tokens
-    'UPDATE_LAST_LOGIN': True,                       # Update user's last_login field
-    
-    'ALGORITHM': 'HS256',                            # Signing algorithm
-    'SIGNING_KEY': SECRET_KEY,                       # Use Django's SECRET_KEY
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
     'JWK_URL': None,
     'LEEWAY': 0,
-
-    'AUTH_HEADER_TYPES': ('Bearer',),                # Authorization: Bearer <token>
+    'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'id',                          # Field to identify user
-    'USER_ID_CLAIM': 'user_id',                     # Claim name in JWT payload
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-
-    'JTI_CLAIM': 'jti',                             # Unique token identifier
-
+    'JTI_CLAIM': 'jti',
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=60),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-# AI Service Settings
-GROQ_API_KEY = config('GROQ_API_KEY', default='')
-GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
-# HH.ru API Settings
-HH_API_BASE_URL = 'https://api.hh.ru'
-HH_API_USER_AGENT = config('HH_API_USER_AGENT', default='smart-resume-matcher-1.0')
-
-# AI Job Matching Settings
-AI_MATCHING_MIN_SCORE = config('AI_MATCHING_MIN_SCORE', default=30, cast=int)
-AI_MATCHING_DEFAULT_LOCATION = config('AI_MATCHING_DEFAULT_LOCATION', default='1')  # Moscow by default
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only allow all origins in DEBUG mode
 
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
@@ -232,11 +258,37 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 
 # Security settings for production
 if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_REDIRECT_EXEMPT = []
     SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
     CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'smart_resume_matcher': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+    },
+}
