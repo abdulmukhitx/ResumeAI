@@ -1,3 +1,6 @@
+# Core Dependencies (install first)
+setuptools>=75.0.0
+
 # Core Django and Web Framework
 Django==5.2.1
 djangorestframework==3.16.0
@@ -64,4 +67,3 @@ asgiref==3.8.1
 sqlparse==0.5.3
 packaging==25.0
 six==1.17.0
-setuptools==75.6.0

@@ -2,7 +2,7 @@ services:
   - type: web
     name: smart-resume-matcher
     env: python
-    buildCommand: ./build.sh
+    buildCommand: ./build_render.sh
     startCommand: gunicorn --log-file=- config.wsgi:application --bind 0.0.0.0:$PORT
     disk:
       name: smart-resume-data
@@ -20,6 +20,12 @@ services:
           name: smart-resume-redis
           type: redis
           property: connectionString
+      - key: GROQ_API_KEY
+        sync: false  # Set this manually in Render dashboard
+      - key: HH_API_BASE_URL
+        value: https://api.hh.ru
+      - key: HH_API_USER_AGENT
+        value: Smart Resume Matcher (contact@example.com)
       - key: PYTHON_VERSION
         value: 3.11.0
 
@@ -38,6 +44,12 @@ services:
           name: smart-resume-redis
           type: redis
           property: connectionString
+      - key: GROQ_API_KEY
+        sync: false  # Set this manually in Render dashboard
+      - key: HH_API_BASE_URL
+        value: https://api.hh.ru
+      - key: HH_API_USER_AGENT
+        value: Smart Resume Matcher (contact@example.com)
       - key: PYTHON_VERSION
         value: 3.11.0
   
@@ -56,6 +68,12 @@ services:
           name: smart-resume-redis
           type: redis
           property: connectionString
+      - key: GROQ_API_KEY
+        sync: false  # Set this manually in Render dashboard
+      - key: HH_API_BASE_URL
+        value: https://api.hh.ru
+      - key: HH_API_USER_AGENT
+        value: Smart Resume Matcher (contact@example.com)
       - key: PYTHON_VERSION
         value: 3.11.0
 
