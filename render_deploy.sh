@@ -18,18 +18,28 @@ check_success() {
     fi
 }
 
+# Install Python dependencies
+echo "1. INSTALLING PYTHON DEPENDENCIES"
+if [ -f "../requirements.txt" ]; then
+    pip install -r ../requirements.txt
+    check_success "Root requirements installation"
+fi
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
+    check_success "Local requirements installation"
+fi
+
 # Navigate to project directory
-echo "1. NAVIGATING TO PROJECT DIRECTORY"
+echo "2. NAVIGATING TO PROJECT DIRECTORY"
 if [ -d "smart_resume_matcher" ]; then
     cd smart_resume_matcher
     check_success "Directory navigation"
 else
-    echo "❌ smart_resume_matcher directory not found"
-    exit 1
+    echo "Already in smart_resume_matcher directory or current directory is correct"
 fi
 
 # Set up SQLite persistence for Render
-echo "2. SETTING UP DATABASE PERSISTENCE"
+echo "3. SETTING UP DATABASE PERSISTENCE"
 if [ -d "/var/data" ]; then
     echo "Render environment detected, setting up SQLite persistence..."
     mkdir -p /var/data
@@ -58,12 +68,12 @@ else
 fi
 
 # Collect static files
-echo "3. COLLECTING STATIC FILES"
+echo "4. COLLECTING STATIC FILES"
 python manage.py collectstatic --noinput
 check_success "Static files collection"
 
 # Create superuser if needed
-echo "4. CHECKING SUPERUSER"
+echo "5. CHECKING SUPERUSER"
 python manage.py shell -c "
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -77,7 +87,7 @@ else:
 check_success "Superuser check"
 
 # Sync usernames
-echo "5. SYNCING USER DATA"
+echo "6. SYNCING USER DATA"
 python manage.py sync_usernames
 check_success "Username synchronization"
 

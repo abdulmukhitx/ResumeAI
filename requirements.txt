@@ -1,40 +1,64 @@
-amqp==5.3.1
-asgiref==3.8.1
-billiard==4.2.1
+# Core Django and Web Framework
+Django==5.2.1
+djangorestframework==3.16.0
+djangorestframework-simplejwt==5.3.0
+django-cors-headers==4.7.0
+django-extensions==4.1
+
+# Database and Storage
+dj-database-url==2.1.0
+psycopg2-binary==2.9.10
+django-storages==1.14.2
+boto3==1.34.71
+
+# Server and Deployment
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Task Queue and Background Jobs
 celery==5.5.3
+django-celery-beat==2.8.1
+redis==5.2.1
+amqp==5.3.1
+billiard==4.2.1
+kombu==5.5.4
+vine==5.1.0
+
+# Configuration and Environment
+python-decouple==3.8
+
+# PDF Processing
+PyPDF2==3.0.1
+pdfminer.six==20250327
+pdfplumber==0.11.6
+pytesseract==0.3.13
+pdf2image==1.17.0
+Pillow==11.2.1
+
+# HTTP and API
+requests==2.32.3
+urllib3==2.4.0
 certifi==2025.4.26
 charset-normalizer==3.4.2
+idna==3.10
+
+# Date and Time
+python-dateutil==2.9.0.post0
+django-timezone-field==7.1
+tzdata==2025.2
+
+# Cron and Scheduling
+python-crontab==3.2.0
+cron-descriptor==1.4.5
+
+# Other Dependencies
+asgiref==3.8.1
 click==8.2.1
 click-didyoumean==0.3.1
 click-plugins==1.1.1
 click-repl==0.3.0
-cron-descriptor==1.4.5
-Django==5.2.1
-django-celery-beat==2.8.1
-django-cors-headers==4.7.0
-django-extensions==4.1
-django-timezone-field==7.1
-djangorestframework==3.16.0
-idna==3.10
-kombu==5.5.4
 packaging==25.0
-pillow==11.2.1
 prompt_toolkit==3.0.51
-psycopg2-binary==2.9.10
-PyPDF2==3.0.1
-python-crontab==3.2.0
-python-dateutil==2.9.0.post0
-python-decouple==3.8
-redis==5.2.1
-requests==2.32.3
 six==1.17.0
 sqlparse==0.5.3
-tzdata==2025.2
-urllib3==2.4.0
-vine==5.1.0
 wcwidth==0.2.13
-gunicorn==21.2.0
-whitenoise==6.6.0
-dj-database-url==2.1.0  # We keep this for compatibility, but won't use it for PostgreSQL
-django-storages==1.14.2  # For handling static files on cloud storage
-boto3==1.34.71  # For AWS S3 storage (optional)
