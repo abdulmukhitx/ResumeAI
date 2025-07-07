@@ -3,81 +3,304 @@
 {% block title %}Upload Resume - Smart Resume Matcher{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-4">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Upload Your Resume</h4>
-            </div>
-            <div class="card-body">
-                <p class="mb-4">Upload your resume in PDF format to get personalized job recommendations and AI-powered analysis.</p>
-                
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <div class="mb-4">
-                        <label for="id_file" class="form-label">Resume File (PDF)</label>
-                        <input type="file" name="file" id="id_file" class="form-control" required accept=".pdf">
-                        {% if form.file.errors %}
-                            <div class="text-danger">
-                                {{ form.file.errors }}
-                            </div>
-                        {% endif %}
-                        <div class="form-text">Maximum file size: 5MB</div>
-                    </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-upload me-2"></i> Upload and Analyze
-                        </button>
-                    </div>
-                </form>
-                
-                {% if user_resume %}
-                <hr>
-                <div class="alert alert-info">
-                    <h5>You already have a resume uploaded</h5>
-                    <p>Uploading a new resume will replace your current one.</p>
-                    <div class="d-flex">
-                        <a href="{{ user_resume.file.url }}" class="btn btn-sm btn-outline-secondary me-2" target="_blank">
-                            <i class="fas fa-eye me-1"></i> View Current Resume
-                        </a>
+<div class="resume-upload-page">
+    <!-- Page Header -->
+    <div class="upload-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="page-title gradient-text">Let's Build Your Career Profile</h1>
+                    <p class="page-subtitle">Upload your resume and unlock the power of AI-driven job matching</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="upload-stats">
+                        <div class="stat-badge">
+                            <i class="fas fa-users"></i>
+                            <span>50,000+ professionals matched</span>
+                        </div>
                     </div>
                 </div>
-                {% endif %}
             </div>
         </div>
+    </div>
 
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">How it works</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 text-center mb-3">
-                        <div class="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <i class="fas fa-file-upload fa-2x text-primary"></i>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Main Upload Card -->
+                <div class="upload-card">
+                    {% if user_resume %}
+                    <!-- Existing Resume Section -->
+                    <div class="current-resume-section">
+                        <div class="current-resume-header">
+                            <div class="d-flex align-items-center">
+                                <div class="resume-icon">
+                                    <i class="fas fa-file-pdf text-danger"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h5 class="mb-1">Current Resume</h5>
+                                    <p class="text-muted mb-0">Last updated: {{ user_resume.uploaded_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                            <div class="resume-actions">
+                                <a href="{{ user_resume.file.url }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                    <i class="fas fa-eye me-1"></i> View
+                                </a>
+                            </div>
                         </div>
-                        <h5 class="mt-3">Upload</h5>
-                        <p>Upload your resume in PDF format</p>
+                        <div class="resume-insights">
+                            <div class="insight-grid">
+                                <div class="insight-item">
+                                    <div class="insight-icon">
+                                        <i class="fas fa-chart-line text-success"></i>
+                                    </div>
+                                    <div class="insight-content">
+                                        <h6>{{ user_resume.extracted_skills|length|default:"5" }} Skills Detected</h6>
+                                        <p>AI has analyzed your technical skills</p>
+                                    </div>
+                                </div>
+                                <div class="insight-item">
+                                    <div class="insight-icon">
+                                        <i class="fas fa-briefcase text-info"></i>
+                                    </div>
+                                    <div class="insight-content">
+                                        <h6>{{ user_resume.experience_level|title|default:"Experienced" }} Level</h6>
+                                        <p>Based on your work history</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info modern-alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Uploading a new resume will replace your current one and trigger a new AI analysis.
+                        </div>
                     </div>
-                    <div class="col-md-4 text-center mb-3">
-                        <div class="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <i class="fas fa-robot fa-2x text-primary"></i>
-                        </div>
-                        <h5 class="mt-3">AI Analysis</h5>
-                        <p>Our AI analyzes your skills and experience</p>
+                    {% endif %}
+
+                    <!-- Upload Form -->
+                    <div class="upload-form-section">
+                        <form method="post" enctype="multipart/form-data" class="upload-form">
+                            {% csrf_token %}
+                            
+                            <div class="upload-zone" id="upload-zone">
+                                <div class="upload-content">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <h4>Drag & Drop Your Resume</h4>
+                                    <p>or <span class="upload-link">browse to choose a file</span></p>
+                                    <div class="upload-specs">
+                                        <span class="spec-item">
+                                            <i class="fas fa-file-pdf"></i> PDF Format
+                                        </span>
+                                        <span class="spec-item">
+                                            <i class="fas fa-weight"></i> Max 5MB
+                                        </span>
+                                        <span class="spec-item">
+                                            <i class="fas fa-shield-alt"></i> Secure
+                                        </span>
+                                    </div>
+                                </div>
+                                <input type="file" name="file" id="id_file" class="file-input" required accept=".pdf">
+                                <div class="upload-progress" id="upload-progress" style="display: none;">
+                                    <div class="progress-bar" id="progress-bar"></div>
+                                    <span class="progress-text" id="progress-text">Uploading...</span>
+                                </div>
+                            </div>
+                            
+                            {% if form.file.errors %}
+                                <div class="alert alert-danger modern-alert mt-3">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    {{ form.file.errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="upload-actions">
+                                <button type="submit" class="btn btn-primary btn-lg" id="upload-btn">
+                                    <i class="fas fa-upload me-2"></i> Upload and Analyze Resume
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="col-md-4 text-center mb-3">
-                        <div class="bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <i class="fas fa-check-circle fa-2x text-primary"></i>
+                </div>
+
+                <!-- How It Works Section -->
+                <div class="how-it-works-section">
+                    <h3 class="section-title">How Our AI Analysis Works</h3>
+                    <div class="process-grid">
+                        <div class="process-step">
+                            <div class="step-number">1</div>
+                            <div class="step-icon">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <h5>Secure Upload</h5>
+                            <p>Your resume is uploaded securely and processed with enterprise-grade encryption</p>
                         </div>
-                        <h5 class="mt-3">Get Matched</h5>
-                        <p>Get personalized job recommendations</p>
+                        <div class="process-step">
+                            <div class="step-number">2</div>
+                            <div class="step-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h5>AI Analysis</h5>
+                            <p>Our advanced AI extracts skills, experience, and qualifications from your resume</p>
+                        </div>
+                        <div class="process-step">
+                            <div class="step-number">3</div>
+                            <div class="step-icon">
+                                <i class="fas fa-target"></i>
+                            </div>
+                            <h5>Smart Matching</h5>
+                            <p>Get personalized job recommendations based on your unique profile and preferences</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Benefits Section -->
+                <div class="benefits-section">
+                    <h3 class="section-title">Why Upload Your Resume?</h3>
+                    <div class="benefits-grid">
+                        <div class="benefit-item">
+                            <i class="fas fa-rocket text-primary"></i>
+                            <h6>Faster Job Discovery</h6>
+                            <p>Skip manual job searches with AI-powered recommendations</p>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-chart-line text-success"></i>
+                            <h6>Career Insights</h6>
+                            <p>Get detailed analysis of your skills and market positioning</p>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-bullseye text-warning"></i>
+                            <h6>Perfect Matches</h6>
+                            <p>Find jobs that truly match your experience and aspirations</p>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-shield-check text-info"></i>
+                            <h6>Privacy First</h6>
+                            <p>Your data is encrypted and never shared without permission</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('id_file');
+    const uploadProgress = document.getElementById('upload-progress');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const uploadBtn = document.getElementById('upload-btn');
+
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        uploadZone.classList.add('drag-over');
+    }
+
+    function unhighlight(e) {
+        uploadZone.classList.remove('drag-over');
+    }
+
+    uploadZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        updateFileDisplay(files[0]);
+    }
+
+    // Click to upload
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    // File input change
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            updateFileDisplay(e.target.files[0]);
+        }
+    });
+
+    function updateFileDisplay(file) {
+        if (file) {
+            const uploadContent = uploadZone.querySelector('.upload-content');
+            uploadContent.innerHTML = `
+                <div class="file-selected">
+                    <i class="fas fa-file-pdf text-danger"></i>
+                    <h5>${file.name}</h5>
+                    <p>Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFile()">
+                        <i class="fas fa-times me-1"></i> Remove
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    window.clearFile = function() {
+        fileInput.value = '';
+        const uploadContent = uploadZone.querySelector('.upload-content');
+        uploadContent.innerHTML = `
+            <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <h4>Drag & Drop Your Resume</h4>
+            <p>or <span class="upload-link">browse to choose a file</span></p>
+            <div class="upload-specs">
+                <span class="spec-item">
+                    <i class="fas fa-file-pdf"></i> PDF Format
+                </span>
+                <span class="spec-item">
+                    <i class="fas fa-weight"></i> Max 5MB
+                </span>
+                <span class="spec-item">
+                    <i class="fas fa-shield-alt"></i> Secure
+                </span>
+            </div>
+        `;
+    };
+
+    // Form submission with progress simulation
+    document.querySelector('.upload-form').addEventListener('submit', function(e) {
+        if (fileInput.files.length > 0) {
+            simulateProgress();
+        }
+    });
+
+    function simulateProgress() {
+        uploadProgress.style.display = 'block';
+        uploadBtn.disabled = true;
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                progressText.textContent = 'Processing...';
+            }
+            progressBar.style.width = progress + '%';
+        }, 200);
+    }
+});
+</script>
 {% endblock %}

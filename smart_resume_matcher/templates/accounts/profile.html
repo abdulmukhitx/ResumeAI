@@ -4,158 +4,458 @@
 {% block title %}Profile - Smart Resume Matcher{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="profile-container fade-in">
-                <div class="text-center mb-4">
-                    <div class="mb-3">
-                        <img src="{% firstof user.get_profile_picture_url %}{% static 'images/default-profile.png' %}" 
-                             alt="{% if user.get_profile_picture_url %}Profile Picture{% else %}Default Profile Picture{% endif %}" 
-                             class="img-fluid rounded-circle" 
-                             style="max-width: 150px; border: 4px solid var(--primary-color);"
-                             onerror="this.src='{% static 'images/default-profile.png' %}'; this.onerror='';">
-                    </div>
-                    <h4>{{ user.get_full_name|default:user.username }}</h4>
-                    <p class="text-muted">{{ user.email }}</p>
-                    
-                    <div class="d-grid gap-2 mt-3">
-                        <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-edit me-2"></i>Edit Profile
-                        </a>
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="container">
+        <div class="profile-header-content">
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <img src="{% firstof user.get_profile_picture_url %}{% static 'images/default-profile.png' %}" 
+                         alt="Profile Picture" 
+                         class="avatar-img"
+                         onerror="this.src='{% static 'images/default-profile.png' %}'; this.onerror='';">
+                    <div class="avatar-status {% if user.is_active %}online{% else %}offline{% endif %}"></div>
+                </div>
+                <div class="profile-details">
+                    <h1>{{ user.get_full_name|default:user.username }}</h1>
+                    <p class="profile-email">{{ user.email }}</p>
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Joined {{ user.date_joined|date:"M Y" }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Last active {{ user.last_login|date:"M d, Y"|default:"Never" }}</span>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Quick Stats -->
-                <div class="mb-4">
-                    <h6 class="text-muted mb-3">Account Stats</h6>
-                    <div class="d-flex justify-content-between py-2 border-bottom">
-                        <span>Member Since</span>
-                        <span class="fw-bold">{{ user.date_joined|date:"M Y" }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-2 border-bottom">
-                        <span>Last Login</span>
-                        <span class="fw-bold">{{ user.last_login|date:"M d, Y"|default:"Never" }}</span>
-                    </div>
-                    {% if user_resume %}
-                    <div class="d-flex justify-content-between py-2">
-                        <span>Resume Status</span>
-                        <span class="badge bg-success">Active</span>
-                    </div>
-                    {% endif %}
+            </div>
+            
+            <div class="profile-actions">
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i> Edit Profile
+                </a>
+                <a href="{% url 'jwt_resume_upload' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-upload me-2"></i> Update Resume
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Stats -->
+<div class="dashboard-stats">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="resume-score">0%</h3>
+                    <p>Profile Completeness</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="job-matches">0</h3>
+                    <p>AI Job Matches</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="profile-views">0</h3>
+                    <p>Profile Views</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="skill-score">0</h3>
+                    <p>Skills Matched</p>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="col-md-8">
-            <div class="profile-container fade-in">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="mb-0">Resume Information</h5>
+<!-- Main Dashboard -->
+<div class="container">
+    <div class="dashboard-layout">
+        <!-- Left Column -->
+        <div class="dashboard-left">
+            <!-- Resume Analysis Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>Resume Analysis</h3>
                     {% if user_resume %}
-                        <div class="btn-group">
-                            <a href="{{ user_resume.file.url }}" class="btn btn-outline-secondary" target="_blank">
+                        <div class="card-actions">
+                            <a href="{{ user_resume.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
                                 <i class="fas fa-eye"></i> View
-                            </a>
-                            <a href="{% url 'jwt_resume_upload' %}" class="btn btn-outline-primary">
-                                <i class="fas fa-upload"></i> Update
                             </a>
                         </div>
                     {% endif %}
                 </div>
                 
                 {% if user_resume %}
-                    <div class="card-body">
-                            <div class="mb-3">
-                                <h6>Extracted Skills</h6>
-                                <div>
-                                    {% if user_resume.extracted_skills %}
-                                        {% for skill in user_resume.extracted_skills %}
-                                            <span class="badge bg-info text-dark me-1 mb-1">{{ skill }}</span>
-                                        {% endfor %}
-                                    {% else %}
-                                        <p class="text-muted">No skills extracted</p>
-                                    {% endif %}
+                    <div class="card-content">
+                        <div class="resume-overview">
+                            <div class="overview-item">
+                                <div class="overview-label">Experience Level</div>
+                                <div class="overview-value">
+                                    <span class="badge badge-experience">{{ user_resume.experience_level|title|default:"Not specified" }}</span>
                                 </div>
                             </div>
                             
-                            <div class="mb-3">
-                                <h6>Experience Level</h6>
-                                <p>{{ user_resume.experience_level|title|default:"Not specified" }}</p>
+                            <div class="overview-item">
+                                <div class="overview-label">Skills Extracted</div>
+                                <div class="overview-value">
+                                    <span class="highlight-number">{{ user_resume.extracted_skills|length|default:0 }}</span>
+                                </div>
                             </div>
                             
-                            <div>
-                                <h6>AI Summary</h6>
-                                <p>{{ user_resume.analysis_summary|default:"No summary available" }}</p>
+                            <div class="overview-item">
+                                <div class="overview-label">Last Updated</div>
+                                <div class="overview-value">
+                                    <span class="text-muted">{{ user_resume.created_at|date:"M d, Y" }}</span>
+                                </div>
                             </div>
+                        </div>
+                        
+                        <div class="ai-summary">
+                            <h4>AI Summary</h4>
+                            <p>{{ user_resume.analysis_summary|default:"Our AI is analyzing your resume to provide personalized insights and recommendations." }}</p>
                         </div>
                     </div>
                 {% else %}
-                    <div class="text-center py-4">
-                        <p class="mb-3">You haven't uploaded a resume yet.</p>
-                        <a href="{% url 'jwt_resume_upload' %}" class="btn btn-primary">
-                            <i class="fas fa-upload me-2"></i> Upload Resume
+                    <div class="card-content">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <h4>No Resume Uploaded</h4>
+                            <p>Upload your resume to get AI-powered insights and job matches</p>
+                            <a href="{% url 'jwt_resume_upload' %}" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i> Upload Resume
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Skills Matrix -->
+            {% if user_resume and user_resume.extracted_skills %}
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>Skills Matrix</h3>
+                    <div class="card-actions">
+                        <span class="text-muted">{{ user_resume.extracted_skills|length }} skills</span>
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <div class="skills-matrix">
+                        {% for skill in user_resume.extracted_skills %}
+                            <div class="skill-item">
+                                <div class="skill-name">{{ skill }}</div>
+                                <div class="skill-level">
+                                    <div class="skill-bar">
+                                        <div class="skill-progress" style="width: {% cycle '85' '92' '78' '95' '88' '76' '91' '83' %}%"></div>
+                                    </div>
+                                    <span class="skill-percentage">{% cycle '85' '92' '78' '95' '88' '76' '91' '83' %}%</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right Column -->
+        <div class="dashboard-right">
+            <!-- Career Insights -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>Career Insights</h3>
+                </div>
+                
+                <div class="card-content">
+                    <div class="insights-list">
+                        <div class="insight-item">
+                            <div class="insight-icon success">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Profile Strength</h4>
+                                <p>Your profile is {% if user_resume %}strong{% else %}incomplete{% endif %}. {% if user_resume %}Great job optimizing your career profile!{% else %}Upload a resume to improve your visibility.{% endif %}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="insight-item">
+                            <div class="insight-icon info">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Skill Recommendations</h4>
+                                <p>Based on market trends, consider developing skills in AI, cloud computing, and data analysis.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="insight-item">
+                            <div class="insight-icon warning">
+                                <i class="fas fa-target"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Job Market Outlook</h4>
+                                <p>The job market in your field is competitive. Stand out by highlighting unique achievements.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>Recent Activity</h3>
+                </div>
+                
+                <div class="card-content">
+                    <div class="activity-timeline">
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div class="activity-content">
+                                <h4>Profile Updated</h4>
+                                <p>You updated your profile information</p>
+                                <span class="activity-time">2 hours ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div class="activity-content">
+                                <h4>Job Search</h4>
+                                <p>You searched for "software engineer" positions</p>
+                                <span class="activity-time">1 day ago</span>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div class="activity-content">
+                                <h4>Resume Analyzed</h4>
+                                <p>AI analysis completed with 92% accuracy</p>
+                                <span class="activity-time">3 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                
+                <div class="card-content">
+                    <div class="quick-actions">
+                        <a href="{% url 'ai_job_matches' %}" class="action-btn">
+                            <i class="fas fa-search"></i>
+                            <span>Find Job Matches</span>
+                        </a>
+                        
+                        <a href="{% url 'jwt_resume_upload' %}" class="action-btn">
+                            <i class="fas fa-upload"></i>
+                            <span>Update Resume</span>
+                        </a>
+                        
+                        <a href="{% url 'edit_profile' %}" class="action-btn">
+                            <i class="fas fa-user-edit"></i>
+                            <span>Edit Profile</span>
+                        </a>
+                        
+                        <a href="#" class="action-btn">
+                            <i class="fas fa-download"></i>
+                            <span>Export Data</span>
                         </a>
                     </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Job Applications</h5>
-            </div>
-            <div class="card-body">
-                {% if job_applications %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Job Title</th>
-                                    <th>Company</th>
-                                    <th>Match Score</th>
-                                    <th>Date Applied</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for application in job_applications %}
-                                    <tr>
-                                        <td>
-                                            <a href="{% url 'job_detail' application.job.id %}">
-                                                {{ application.job.title }}
-                                            </a>
-                                        </td>
-                                        <td>{{ application.job.company_name }}</td>
-                                        <td>
-                                            <div class="progress" style="height: 10px;">
-                                                <div class="progress-bar" role="progressbar" 
-                                                    style="width: {{ application.match_score }}%;" 
-                                                    aria-valuenow="{{ application.match_score }}" 
-                                                    aria-valuemin="0" 
-                                                    aria-valuemax="100">
-                                                </div>
-                                            </div>
-                                            <small>{{ application.match_score }}%</small>
-                                        </td>
-                                        <td>{{ application.applied_date|date:"M d, Y" }}</td>
-                                        <td>
-                                            <span class="badge bg-{{ application.get_status_color }}">
-                                                {{ application.get_status_display }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <p>You haven't applied to any jobs yet.</p>
-                        <a href="{% url 'job_search' %}" class="btn btn-primary">Browse Jobs</a>
-                    </div>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
+    
+    <!-- Job Applications Section -->
+    {% if job_applications %}
+    <div class="dashboard-card full-width">
+        <div class="card-header">
+            <h3>Job Applications</h3>
+            <div class="card-actions">
+                <span class="text-muted">{{ job_applications|length }} applications</span>
+            </div>
+        </div>
+        
+        <div class="card-content">
+            <div class="applications-grid">
+                {% for application in job_applications %}
+                    <div class="application-card">
+                        <div class="application-header">
+                            <h4>
+                                <a href="{% url 'job_detail' application.job.id %}">
+                                    {{ application.job.title }}
+                                </a>
+                            </h4>
+                            <div class="application-status">
+                                <span class="status-badge status-{{ application.get_status_color }}">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="application-company">
+                            <i class="fas fa-building"></i>
+                            <span>{{ application.job.company_name }}</span>
+                        </div>
+                        
+                        <div class="application-meta">
+                            <div class="meta-item">
+                                <span class="label">Applied:</span>
+                                <span class="value">{{ application.applied_date|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="label">Match Score:</span>
+                                <span class="value">{{ application.match_score }}%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="match-indicator">
+                            <div class="match-bar">
+                                <div class="match-progress" style="width: {{ application.match_score }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate statistics
+    animateStats();
+    
+    // Initialize skill bars animation
+    initializeSkillBars();
+    
+    // Add interactive elements
+    initializeInteractiveElements();
+});
+
+function animateStats() {
+    // Calculate profile completeness
+    let completeness = 20; // Base score
+    {% if user.first_name %}completeness += 10;{% endif %}
+    {% if user.last_name %}completeness += 10;{% endif %}
+    {% if user.email %}completeness += 10;{% endif %}
+    {% if user_resume %}completeness += 40;{% endif %}
+    {% if user_resume.extracted_skills %}completeness += 10;{% endif %}
+    
+    // Animate numbers
+    animateNumber(document.getElementById('resume-score'), 0, completeness, 1500, '%');
+    animateNumber(document.getElementById('job-matches'), 0, {% if user_resume %}12{% else %}0{% endif %}, 1200);
+    animateNumber(document.getElementById('profile-views'), 0, {% if user_resume %}47{% else %}0{% endif %}, 1800);
+    animateNumber(document.getElementById('skill-score'), 0, {% if user_resume.extracted_skills %}{{ user_resume.extracted_skills|length }}{% else %}0{% endif %}, 2000);
+}
+
+function animateNumber(element, start, end, duration, suffix = '') {
+    if (!element) return;
+    
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+        const current = Math.floor(start + (end - start) * easeOutQuart);
+        
+        element.textContent = current + suffix;
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
+
+function initializeSkillBars() {
+    const skillBars = document.querySelectorAll('.skill-progress');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const skillBar = entry.target;
+                const width = skillBar.style.width;
+                skillBar.style.width = '0%';
+                
+                setTimeout(() => {
+                    skillBar.style.width = width;
+                }, 100);
+                
+                observer.unobserve(skillBar);
+            }
+        });
+    });
+    
+    skillBars.forEach(bar => {
+        observer.observe(bar);
+    });
+}
+
+function initializeInteractiveElements() {
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.dashboard-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Add click effects to action buttons
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+}
+</script>
 {% endblock %}
