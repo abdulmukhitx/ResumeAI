@@ -11,7 +11,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.shortcuts import get_object_or_404
 from django.apps import apps
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -169,4 +171,81 @@ def user_info_api_view(request):
         return Response({
             'success': False,
             'error': 'Failed to get user info'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([])  # No authentication required for registration
+def register_api_view(request):
+    """
+    API endpoint for user registration
+    """
+    try:
+        # Get form data
+        first_name = request.data.get('first_name', '').strip()
+        last_name = request.data.get('last_name', '').strip()
+        email = request.data.get('email', '').strip().lower()
+        password = request.data.get('password', '')
+        password_confirm = request.data.get('password_confirm', '')
+        
+        # Validation
+        errors = {}
+        
+        if not first_name:
+            errors['first_name'] = ['First name is required']
+        elif len(first_name) < 2:
+            errors['first_name'] = ['First name must be at least 2 characters']
+            
+        if not last_name:
+            errors['last_name'] = ['Last name is required']
+        elif len(last_name) < 2:
+            errors['last_name'] = ['Last name must be at least 2 characters']
+            
+        if not email:
+            errors['email'] = ['Email is required']
+        elif not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            errors['email'] = ['Please enter a valid email address']
+        elif User.objects.filter(email=email).exists():
+            errors['email'] = ['An account with this email already exists']
+            
+        if not password:
+            errors['password'] = ['Password is required']
+        elif len(password) < 8:
+            errors['password'] = ['Password must be at least 8 characters long']
+            
+        if not password_confirm:
+            errors['password_confirm'] = ['Please confirm your password']
+        elif password != password_confirm:
+            errors['password_confirm'] = ['Passwords do not match']
+            
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Create user
+        try:
+            user = User.objects.create_user(
+                username=email,  # Use email as username
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            
+            return Response({
+                'message': 'Account created successfully',
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name
+                }
+            }, status=status.HTTP_201_CREATED)
+            
+        except IntegrityError:
+            return Response({
+                'email': ['An account with this email already exists']
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        return Response({
+            'error': f'Registration failed: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -284,10 +284,14 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Always load auth manager, but with special handling for auth pages -->
     <script src="/static/js/jwt_auth_clean.js"></script>
-    <script src="/static/js/modern-layout.js"></script>
-    <script src="/static/js/main.js"></script>
-    <script src="/static/js/job-description-formatter.js"></script>
+    {% if request.resolver_match.url_name not in 'login,register' %}
+        <!-- Only load these additional scripts on non-auth pages -->
+        <script src="/static/js/modern-layout.js"></script>
+        <script src="/static/js/main.js"></script>
+        <script src="/static/js/job-description-formatter.js"></script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>

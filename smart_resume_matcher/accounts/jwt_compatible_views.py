@@ -71,4 +71,4 @@ def jwt_resume_upload_view(request):
     This view serves the template and lets JavaScript handle authentication.
     No Django authentication required - JWT handled by frontend.
     """
-    return render(request, 'resumes/jwt_upload.html')
+    return render(request, 'resumes/fresh_upload.html')

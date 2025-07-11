@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .token-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Token Debug Test</h1>
+    
+    <div class="test-section">
+        <h2>Current Token Status</h2>
+        <div id="token-status"></div>
+        <button onclick="checkTokens()">Check Tokens</button>
+        <button onclick="clearAllTokens()">Clear All Tokens</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Login Test</h2>
+        <input type="email" id="email" placeholder="Email" value="test@example.com">
+        <input type="password" id="password" placeholder="Password" value="testpass123">
+        <button onclick="quickLogin()">Login & Check Tokens</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test AI Matches Access</h2>
+        <button onclick="testAIMatches()">Test /jobs/ai-matches/ Access</button>
+        <div id="ai-matches-result"></div>
+    </div>
+
+    <script>
+        function checkTokens() {
+            let status = '<h3>localStorage Tokens:</h3>';
+            
+            const accessToken = localStorage.getItem('smart_resume_access_token');
+            const refreshToken = localStorage.getItem('smart_resume_refresh_token');
+            const userData = localStorage.getItem('smart_resume_user_data');
+            
+            if (accessToken) {
+                status += `<div class="token-info">Access Token: ${accessToken.substring(0, 50)}...</div>`;
+            } else {
+                status += '<div class="token-info">❌ No Access Token in localStorage</div>';
+            }
+            
+            if (refreshToken) {
+                status += `<div class="token-info">Refresh Token: ${refreshToken.substring(0, 50)}...</div>`;
+            } else {
+                status += '<div class="token-info">❌ No Refresh Token in localStorage</div>';
+            }
+            
+            if (userData) {
+                const user = JSON.parse(userData);
+                status += `<div class="token-info">User Data: ${user.email}</div>`;
+            } else {
+                status += '<div class="token-info">❌ No User Data in localStorage</div>';
+            }
+            
+            status += '<h3>Cookie Tokens:</h3>';
+            
+            const cookieAccessToken = getCookie('access_token');
+            const cookieRefreshToken = getCookie('refresh_token');
+            
+            if (cookieAccessToken) {
+                status += `<div class="token-info">Access Token Cookie: ${cookieAccessToken.substring(0, 50)}...</div>`;
+            } else {
+                status += '<div class="token-info">❌ No Access Token Cookie</div>';
+            }
+            
+            if (cookieRefreshToken) {
+                status += `<div class="token-info">Refresh Token Cookie: ${cookieRefreshToken.substring(0, 50)}...</div>`;
+            } else {
+                status += '<div class="token-info">❌ No Refresh Token Cookie</div>';
+            }
+            
+            document.getElementById('token-status').innerHTML = status;
+        }
+        
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+        
+        function clearAllTokens() {
+            localStorage.removeItem('smart_resume_access_token');
+            localStorage.removeItem('smart_resume_refresh_token');
+            localStorage.removeItem('smart_resume_user_data');
+            
+            document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            
+            document.getElementById('token-status').innerHTML = '<p>✅ All tokens cleared!</p>';
+        }
+        
+        async function quickLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/auth/token/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Store tokens in localStorage
+                    localStorage.setItem('smart_resume_access_token', data.access);
+                    localStorage.setItem('smart_resume_refresh_token', data.refresh);
+                    localStorage.setItem('smart_resume_user_data', JSON.stringify(data.user));
+                    
+                    // Store tokens in cookies
+                    document.cookie = `access_token=${data.access}; path=/; max-age=3600; SameSite=Lax`;
+                    document.cookie = `refresh_token=${data.refresh}; path=/; max-age=604800; SameSite=Lax`;
+                    
+                    document.getElementById('login-result').innerHTML = '<p>✅ Login successful! Tokens stored.</p>';
+                    
+                    // Automatically check tokens
+                    checkTokens();
+                } else {
+                    document.getElementById('login-result').innerHTML = `<p>❌ Login failed: ${JSON.stringify(data)}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('login-result').innerHTML = `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testAIMatches() {
+            try {
+                const response = await fetch('/jobs/ai-matches/', {
+                    method: 'GET',
+                    credentials: 'include' // Include cookies
+                });
+                
+                if (response.ok) {
+                    document.getElementById('ai-matches-result').innerHTML = '<p>✅ AI Matches page accessible!</p>';
+                } else if (response.status === 302) {
+                    document.getElementById('ai-matches-result').innerHTML = '<p>❌ Redirected to login (302) - JWT auth failed</p>';
+                } else {
+                    document.getElementById('ai-matches-result').innerHTML = `<p>❌ Access failed: ${response.status}</p>`;
+                }
+            } catch (error) {
+                document.getElementById('ai-matches-result').innerHTML = `<p>❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkTokens();
+        });
+    </script>
+</body>
+</html>

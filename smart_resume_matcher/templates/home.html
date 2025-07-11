@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_modern.html' %}
 
 {% block title %}Home - Smart Resume Matcher{% endblock %}
 
@@ -319,6 +319,19 @@ function initializeHomePageAuth() {
 function handleHomePageAuthentication() {
     const isAuthenticated = window.authManager.isAuthenticated();
     const userData = window.authManager.getUserData();
+    
+    console.log('Home page: Authentication status:', isAuthenticated);
+    if (userData) {
+        console.log('Home page: User data:', userData.email);
+    }
+    
+    // CRITICAL FIX: Update navigation based on authentication status
+    if (typeof window.authManager.updateNavigation === 'function') {
+        console.log('Home page: Updating navigation...');
+        window.authManager.updateNavigation();
+    } else {
+        console.warn('Home page: updateNavigation method not available');
+    }
     
     // Show/hide content based on authentication status
     const jwtAuthContent = document.getElementById('jwt-authenticated-content');

@@ -117,17 +117,20 @@ class CleanJWTAuth {
     // Login
     async login(email, password) {
         try {
+            // Use 'email' field to authenticate via JWT endpoint (our serializer expects email field)
+            const credentials = { email: email, password };
             const response = await fetch(`${this.baseURL}/api/auth/token/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify(credentials)
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Login failed');
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.detail || errorData.error || errorData.non_field_errors?.[0] || 'Login failed';
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();

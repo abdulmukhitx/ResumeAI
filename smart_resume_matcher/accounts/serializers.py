@@ -11,7 +11,18 @@ User = get_user_model()
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Custom JWT serializer that includes user information in the token response
+    Uses email field instead of username since our model uses email as USERNAME_FIELD
     """
+    
+    # Override the username field to use email
+    username_field = 'email'
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Replace the username field with email field if it exists
+        if 'username' in self.fields:
+            username_field = self.fields.pop('username')
+            self.fields['email'] = username_field
     
     @classmethod
     def get_token(cls, user):

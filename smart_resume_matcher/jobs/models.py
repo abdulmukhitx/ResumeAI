@@ -130,6 +130,9 @@ class JobMatch(models.Model):
     matching_skills = models.JSONField(default=list, blank=True)
     missing_skills = models.JSONField(default=list, blank=True)
     
+    # Analysis version for tracking matching algorithm updates
+    analysis_version = models.CharField(max_length=50, default='v1', blank=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

@@ -78,6 +78,7 @@ def jwt_login_required(view_func):
             return JsonResponse({'error': 'Authentication required'}, status=401)
         
         # Regular request - redirect to login
+        # Redirect unauthenticated users to JWT login
         login_url = '/login/'
         if request.path != login_url:
             login_url += f'?next={request.path}'

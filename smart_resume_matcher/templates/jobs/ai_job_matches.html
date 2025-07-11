@@ -1,283 +1,854 @@
-{% extends 'base.html' %}
+{% extends 'base_modern.html' %}
 {% load job_filters %}
 
 {% block title %}AI Job Matching - Smart Resume Matcher{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Modern AI Job Matches Page Styles */
+    .ai-matches-header {
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        color: white;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ai-matches-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(31, 28, 44, 0.2);
+        z-index: 1;
+    }
+
+    .ai-matches-header .container {
+        position: relative;
+        z-index: 2;
+    }
+
+    .ai-matches-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .ai-matches-subtitle {
+        font-size: 1.3rem;
+        opacity: 0.95;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        flex: 1;
+        min-width: 200px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .search-section {
+        background: white;
+        padding: 2.5rem 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+        border-radius: 0 0 2rem 2rem;
+    }
+    }
+
+    .search-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: end;
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-group {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .search-group label {
+        display: block;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        font-size: 1rem;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border: 2px solid #e9ecef;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #928DAB;
+        box-shadow: 0 0 0 4px rgba(146, 141, 171, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .search-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .btn-ai-search {
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(146, 141, 171, 0.3);
+    }
+
+    .btn-ai-search:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(146, 141, 171, 0.4);
+        color: white;
+    }
+
+    .btn-auto-match {
+        background: linear-gradient(135deg, #17a2b8 0%, #28a745 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+    }
+
+    .btn-auto-match:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+        color: white;
+    }
+
+    .btn-loading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    .btn-loading .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .main-content-area {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+
+    .profile-summary {
+        flex: 0 0 300px;
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 120px;
+        height: fit-content;
+    }
+
+    .profile-header {
+        text-align: center;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f8f9fa;
+        margin-bottom: 1rem;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .profile-avatar i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .profile-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-level {
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .profile-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-section h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin-bottom: 0.75rem;
+    }
+
+    .skills-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .skill-tag {
+        background: #f8f9fa;
+        color: #1F1C2C;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid #e9ecef;
+    }
+
+    .job-matches-area {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .matches-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .matches-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin: 0;
+    }
+
+    .matches-count {
+        background: #f8f9fa;
+        color: #1F1C2C;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+
+    .job-card {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .job-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .job-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .job-card:hover::before {
+        opacity: 1;
+    }
+
+    .job-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .job-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin-bottom: 0.5rem;
+    }
+
+    .job-company {
+        color: #928DAB;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .job-location {
+        color: #6c757d;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .match-score {
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .match-percentage {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .match-percentage.high {
+        color: #28a745;
+    }
+
+    .match-percentage.medium {
+        color: #ffc107;
+    }
+
+    .match-percentage.low {
+        color: #dc3545;
+    }
+
+    .match-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+    }
+
+    .job-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .job-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .job-skills {
+        margin-bottom: 1rem;
+    }
+
+    .job-skills-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin-bottom: 0.5rem;
+    }
+
+    .job-skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .job-skill-tag {
+        background: #f8f9fa;
+        color: #1F1C2C;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid #e9ecef;
+    }
+
+    .job-skill-tag.matching {
+        background: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+
+    .job-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-view-details {
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-view-details:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(146, 141, 171, 0.4);
+        color: white;
+    }
+
+    .btn-apply {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-apply:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+
+    .no-matches {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .no-matches i {
+        font-size: 3rem;
+        color: #928DAB;
+        margin-bottom: 1rem;
+    }
+
+    .no-matches h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #1F1C2C;
+    }
+
+    .pagination-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .pagination .page-link {
+        color: #928DAB;
+        border-color: #e9ecef;
+        padding: 0.5rem 1rem;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #928DAB;
+        color: white;
+        border-color: #928DAB;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #928DAB;
+        border-color: #928DAB;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .main-content-area {
+            flex-direction: column;
+        }
+
+        .profile-summary {
+            flex: none;
+            position: static;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .search-form {
+            flex-direction: column;
+        }
+
+        .search-group {
+            min-width: 100%;
+        }
+
+        .search-actions {
+            justify-content: center;
+        }
+
+        .job-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .match-score {
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .ai-matches-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="ai-job-matching-page">
-    <!-- Search Header -->
-    <div class="search-header">
-        <div class="container-fluid">
-            <div class="search-container">
-                <div class="search-title">
-                    <h1>AI-Powered Job Matching</h1>
-                    <p>Discover opportunities tailored to your unique skills and experience</p>
-                </div>
+<!-- AI Matches Header -->
+<div class="ai-matches-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-12 text-center">
+                <h1 class="ai-matches-title">
+                    <i class="fas fa-brain me-3"></i>
+                    AI-Powered Job Matching
+                </h1>
+                <p class="ai-matches-subtitle">
+                    Discover opportunities perfectly tailored to your skills and experience with advanced AI analysis
+                </p>
                 
-                <form method="get" class="search-form">
-                    <div class="search-inputs">
-                        <div class="search-input-group">
-                            <i class="fas fa-search"></i>
-                            <input type="text" name="query" placeholder="Job title, keywords, or skills" 
-                                   value="{{ search_query }}" class="search-input">
-                        </div>
-                        <div class="search-input-group">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" name="location" placeholder="Location (optional)"
-                                   value="{{ location }}" class="search-input">
-                        </div>
-                        <div class="search-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search me-2"></i> Search
-                            </button>
-                            <button type="submit" name="auto_search" value="true" class="btn btn-success">
-                                <i class="fas fa-magic me-2"></i> Auto-Match
-                            </button>
-                        </div>
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <span class="stat-number">{{ jobs.paginator.count|default:0 }}</span>
+                        <span class="stat-label">Matches Found</span>
                     </div>
-                </form>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ user_resume.extracted_skills|length|default:0 }}</span>
+                        <span class="stat-label">Skills Analyzed</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ user_resume.experience_level|title|default:"Pro" }}</span>
+                        <span class="stat-label">Experience Level</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Profile Sidebar -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <div class="profile-sidebar">
-                    <div class="profile-card">
-                        <div class="profile-header">
-                            <i class="fas fa-user-circle"></i>
-                            <h3>Your Profile</h3>
-                        </div>
-                    
-                    <div class="profile-section">
-                        <h4>Experience Level</h4>
-                        <div class="experience-badge">
-                            <i class="fas fa-briefcase"></i>
-                            <span>{{ user_resume.experience_level|title }}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="profile-section">
-                        <h4>Key Skills</h4>
-                        <div class="skills-container">
-                            {% for skill in user_resume.extracted_skills|slice:":8" %}
-                                <span class="skill-tag">{{ skill }}</span>
-                            {% empty %}
-                                <p class="text-muted">No skills found in your resume.</p>
-                            {% endfor %}
-                            {% if user_resume.extracted_skills|length > 8 %}
-                                <div class="skills-more">
-                                    <small>+{{ user_resume.extracted_skills|length|add:"-8" }} more skills</small>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="profile-section">
-                        <h4>Recent Roles</h4>
-                        <div class="roles-container">
-                            {% for title in user_resume.job_titles|slice:":3" %}
-                                <div class="role-item">
-                                    <i class="fas fa-chevron-right"></i>
-                                    <span>{{ title }}</span>
-                                </div>
-                            {% empty %}
-                                <p class="text-muted">No job titles found in your resume.</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <div class="profile-actions">
-                        <a href="{% url 'jwt_profile' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-edit me-2"></i> Edit Profile
-                        </a>
-                    </div>
+<!-- Search Section -->
+<div class="search-section">
+    <div class="container">
+        <form method="get" class="search-form">
+            <div class="search-group">
+                <label for="query">Job Title or Keywords</label>
+                <input type="text" id="query" name="query" class="search-input" 
+                       placeholder="e.g., Software Engineer, Data Scientist"
+                       value="{{ search_query }}">
+            </div>
+            <div class="search-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" name="location" class="search-input"
+                       placeholder="e.g., New York, Remote"
+                       value="{{ location }}">
+            </div>
+            <div class="search-actions">
+                <button type="submit" class="btn-ai-search">
+                    <i class="fas fa-search"></i>
+                    Search Jobs
+                </button>
+                <button type="submit" name="auto_search" value="true" class="btn-auto-match">
+                    <i class="fas fa-magic"></i>
+                    Auto-Match
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="main-content-area">
+        <!-- Profile Summary -->
+        <div class="profile-summary">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
                 </div>
-                
-                <!-- Match Statistics -->
-                <div class="stats-card">
-                    <h4>Match Statistics</h4>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value">{{ jobs|length }}</div>
-                            <div class="stat-label">Jobs Found</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">
-                                {% if jobs %}
-                                    {{ jobs|length|floatformat:0 }}
-                                {% else %}
-                                    0
-                                {% endif %}
-                            </div>
-                            <div class="stat-label">Matches</div>
-                        </div>
+                <div class="profile-name">{{ user.first_name }} {{ user.last_name }}</div>
+                <div class="profile-level">{{ user_resume.experience_level|title|default:"Professional" }}</div>
+            </div>
+
+            {% if user_resume.extracted_skills %}
+            <div class="profile-section">
+                <h4>Top Skills</h4>
+                <div class="skills-grid">
+                    {% for skill in user_resume.extracted_skills|slice:":6" %}
+                        <span class="skill-tag">{{ skill }}</span>
+                    {% endfor %}
+                    {% if user_resume.extracted_skills|length > 6 %}
+                        <span class="skill-tag">+{{ user_resume.extracted_skills|length|add:"-6" }} more</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="profile-section">
+                <h4>Resume Status</h4>
+                <div class="resume-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-file-alt text-success"></i>
+                        <span>Resume Uploaded</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <span>AI Analyzed</span>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Job Results -->
-        <div class="col-lg-9 col-md-8">
-            <div class="results-container">
-                {% if search_performed %}
-                    {% if jobs %}
-                        <div class="results-header">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <h2>{{ jobs|length }} Job{% if jobs|length != 1 %}s{% endif %} Found</h2>
-                                    <p class="text-muted mb-0">AI-matched opportunities based on your profile</p>
-                                </div>
-                                <div class="sort-options">
-                                    <select class="form-select" id="sortJobs">
-                                        <option value="relevance">Sort by Relevance</option>
-                                        <option value="date">Sort by Date</option>
-                                        <option value="salary">Sort by Salary</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="job-results">
-                            {% for job in jobs %}
-                                {% with job_match=job_matches_dict|get_item:job.id %}
-                                <div class="job-card-modern {% if forloop.counter0 < 3 %}featured{% endif %}">
-                                    <div class="job-header">
-                                        <div class="job-title-section">
-                                            <h3 class="job-title">
-                                                <a href="{% url 'job_detail' job.id %}" class="text-decoration-none">{{ job.title }}</a>
-                                            </h3>
-                                            <div class="job-company">
-                                                <i class="fas fa-building me-2"></i>
-                                                <span>{{ job.company_name }}</span>
-                                            </div>
-                                            <div class="job-location mt-2">
-                                                <i class="fas fa-map-marker-alt me-2 text-muted"></i>
-                                                <span class="text-muted">{{ job.location|default:"Remote" }}</span>
-                                            </div>
-                                        </div>
-                                        
-                                        {% if job_match %}
-                                            <div class="match-score">
-                                                <div class="match-percentage 
-                                                    {% if job_match.match_score >= 75 %}excellent{% elif job_match.match_score >= 50 %}good{% else %}fair{% endif %}">>
-                                                    {{ job_match.match_score|floatformat:0 }}%
-                                                </div>
-                                                <div class="match-label">Match</div>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <div class="job-meta">
-                                        {% if job.location %}
-                                            <div class="meta-item">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                                <span>{{ job.location }}</span>
-                                            </div>
-                                        {% endif %}
-                                        
-                                        {% if job.salary_from or job.salary_to %}
-                                            <div class="meta-item">
-                                                <i class="fas fa-money-bill-wave"></i>
-                                                <span>
-                                                    {% if job.salary_from and job.salary_to %}
-                                                        {{ job.salary_from }} - {{ job.salary_to }} {{ job.salary_currency }}
-                                                    {% elif job.salary_from %}
-                                                        From {{ job.salary_from }} {{ job.salary_currency }}
-                                                    {% elif job.salary_to %}
-                                                        Up to {{ job.salary_to }} {{ job.salary_currency }}
-                                                    {% endif %}
-                                                </span>
-                                            </div>
-                                        {% endif %}
-                                        
-                                        <div class="meta-item">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <span>{{ job.published_at|date:"M d, Y" }}</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="job-description">
-                                        <p>{{ job.description|clean_html_description|truncatechars:200 }}</p>
-                                    </div>
-                                    
-                                    {% if job_match and job_match.matching_skills %}
-                                        <div class="matching-skills">
-                                            <h5>Matching Skills</h5>
-                                            <div class="skills-list">
-                                                {% for skill in job_match.matching_skills|slice:":6" %}
-                                                    <span class="skill-match">{{ skill }}</span>
-                                                {% endfor %}
-                                                {% if job_match.matching_skills|length > 6 %}
-                                                    <span class="skill-match-more">+{{ job_match.matching_skills|length|add:"-6" }}</span>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                    
-                                    <div class="job-actions">
-                                        <a href="{% url 'job_detail' job.id %}" class="btn btn-primary">
-                                            <i class="fas fa-eye me-2"></i> View Details
-                                        </a>
-                                        <button class="btn btn-outline-primary" onclick="saveJob({{ job.id }})">
-                                            <i class="fas fa-bookmark me-2"></i> Save Job
-                                        </button>
-                                    </div>
-                                </div>
-                                {% endwith %}
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="no-results">
-                            <div class="no-results-icon">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <h3>No Jobs Found</h3>
-                            <p>No jobs found matching your resume. Try different keywords or location.</p>
-                            <div class="suggestions">
-                                <h4>Suggestions:</h4>
-                                <ul>
-                                    <li>Try broader search terms</li>
-                                    <li>Check your spelling</li>
-                                    <li>Use the Auto-Match feature</li>
-                                    <li>Consider remote opportunities</li>
-                                </ul>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <div class="welcome-search">
-                        <div class="welcome-icon">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <h2>Ready to Find Your Perfect Job Match?</h2>
-                        <p>Our AI will analyze your resume and find the best job opportunities that match your unique skills and experience.</p>
-                        
-                        <div class="search-features">
-                            <div class="feature-item">
-                                <i class="fas fa-brain"></i>
-                                <span>AI-powered matching</span>
-                            </div>
-                            <div class="feature-item">
-                                <i class="fas fa-chart-line"></i>
-                                <span>Personalized recommendations</span>
-                            </div>
-                            <div class="feature-item">
-                                <i class="fas fa-target"></i>
-                                <span>Skills-based matching</span>
-                            </div>
-                        </div>
-                        
-                        <form method="get" class="auto-search-form">
-                            <button type="submit" name="auto_search" value="true" class="btn btn-primary btn-lg">
-                                <i class="fas fa-magic me-2"></i> Find My Perfect Job Matches
-                            </button>
-                        </form>
+
+        <!-- Job Matches -->
+        <div class="job-matches-area">
+            <div class="matches-header">
+                <h2 class="matches-title">Job Matches</h2>
+                {% if jobs %}
+                    <div class="matches-count">
+                        {{ jobs.paginator.count }} match{{ jobs.paginator.count|pluralize:"es" }}
                     </div>
                 {% endif %}
             </div>
+
+            {% if jobs %}
+                {% for job in jobs %}
+                    {% with job_match=job_matches_dict|get_item:job.id %}
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div class="job-info">
+                                <h3 class="job-title">{{ job.title }}</h3>
+                                <div class="job-company">{{ job.company_name|default:"Company not specified" }}</div>
+                                <div class="job-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ job.location|default:"Location not specified" }}
+                                </div>
+                            </div>
+                            <div class="match-score">
+                                {% if job_match %}
+                                    <div class="match-percentage {% if job_match.match_score >= 75 %}high{% elif job_match.match_score >= 50 %}medium{% else %}low{% endif %}">
+                                        {{ job_match.match_score|floatformat:0 }}%
+                                    </div>
+                                    <div class="match-label">Match</div>
+                                {% else %}
+                                    <div class="match-percentage low">0%</div>
+                                    <div class="match-label">Match</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="job-details">
+                            {% if job.salary_from or job.salary_to %}
+                                <div class="job-detail-item">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>
+                                        {% if job.salary_from and job.salary_to %}
+                                            {{ job.salary_from|floatformat:0 }} - {{ job.salary_to|floatformat:0 }} {{ job.salary_currency|default:"" }}
+                                        {% elif job.salary_from %}
+                                            From {{ job.salary_from|floatformat:0 }} {{ job.salary_currency|default:"" }}
+                                        {% elif job.salary_to %}
+                                            Up to {{ job.salary_to|floatformat:0 }} {{ job.salary_currency|default:"" }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            {% endif %}
+                            {% if job.employment_type %}
+                                <div class="job-detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>{{ job.employment_type|title }}</span>
+                                </div>
+                            {% endif %}
+                            {% if job.experience_required %}
+                                <div class="job-detail-item">
+                                    <i class="fas fa-user-graduate"></i>
+                                    <span>{{ job.experience_required|title }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if job.description %}
+                            <div class="job-description">
+                                <p>{{ job.description|truncatewords:30 }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if job_match.matching_skills %}
+                            <div class="job-skills">
+                                <div class="job-skills-title">Matching Skills:</div>
+                                <div class="job-skills-list">
+                                    {% for skill in job_match.matching_skills|slice:":5" %}
+                                        <span class="job-skill-tag matching">{{ skill }}</span>
+                                    {% endfor %}
+                                    {% if job_match.matching_skills|length > 5 %}
+                                        <span class="job-skill-tag">+{{ job_match.matching_skills|length|add:"-5" }} more</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="job-actions">
+                            {% if job.hh_url %}
+                                <a href="{{ job.hh_url }}" target="_blank" class="btn-view-details">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    View on HH.ru
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'job_detail' job.id %}" class="btn-view-details">
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </a>
+                            <a href="{% url 'job_application' job.id %}" class="btn-apply">
+                                <i class="fas fa-paper-plane"></i>
+                                Apply
+                            </a>
+                        </div>
+                    </div>
+                    {% endwith %}
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if jobs.has_other_pages %}
+                    <div class="pagination-wrapper">
+                        <nav>
+                            <ul class="pagination">
+                                {% if jobs.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ jobs.previous_page_number }}{% if search_query %}&query={{ search_query }}{% endif %}{% if location %}&location={{ location }}{% endif %}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in jobs.paginator.page_range %}
+                                    {% if jobs.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&query={{ search_query }}{% endif %}{% if location %}&location={{ location }}{% endif %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if jobs.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ jobs.next_page_number }}{% if search_query %}&query={{ search_query }}{% endif %}{% if location %}&location={{ location }}{% endif %}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="no-matches">
+                    <i class="fas fa-search"></i>
+                    <h3>No Job Matches Found</h3>
+                    {% if search_performed %}
+                        <p>We couldn't find any jobs matching your search criteria.</p>
+                        <p>Try adjusting your search terms or use the Auto-Match feature to find jobs based on your resume.</p>
+                    {% else %}
+                        <p>Start by searching for jobs or use Auto-Match to find opportunities based on your resume.</p>
+                    {% endif %}
+                    <div class="mt-3">
+                        <button type="button" class="btn-auto-match" onclick="document.querySelector('[name=auto_search]').click()">
+                            <i class="fas fa-magic"></i>
+                            Try Auto-Match
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -285,20 +856,171 @@
 
 {% block extra_js %}
 <script>
-function saveJob(jobId) {
-    // Implement save job functionality
-    console.log('Saving job:', jobId);
-    // You can add API call here to save the job
-    alert('Job saved! (Feature coming soon)');
-}
-
-// Add smooth animations
-document.addEventListener('DOMContentLoaded', function() {
-    const jobCards = document.querySelectorAll('.job-card-modern');
-    jobCards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
-        card.classList.add('fade-in');
+    // Enhanced AI Job Matching functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize loading states
+        const searchBtn = document.querySelector('.btn-ai-search');
+        const autoMatchBtn = document.querySelector('.btn-auto-match');
+        const searchForm = document.querySelector('.search-form');
+        
+        // Add loading state for search button
+        if (searchBtn && searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                const target = e.submitter;
+                if (target) {
+                    if (target.classList.contains('btn-ai-search')) {
+                        target.innerHTML = '<div class="spinner"></div> Searching...';
+                        target.classList.add('btn-loading');
+                    } else if (target.classList.contains('btn-auto-match')) {
+                        target.innerHTML = '<div class="spinner"></div> AI Matching...';
+                        target.classList.add('btn-loading');
+                    }
+                    target.disabled = true;
+                }
+            });
+        }
+        
+        // Add smooth scrolling for job cards
+        const jobCards = document.querySelectorAll('.job-card');
+        jobCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                if (!e.target.closest('.job-actions')) {
+                    const titleLink = this.querySelector('.job-title a');
+                    if (titleLink) {
+                        window.open(titleLink.href, '_blank');
+                    }
+                }
+            });
+        });
+        
+        // Auto-scroll to results if search was performed
+        const searchPerformed = {{ search_performed|yesno:"true,false" }};
+        if (searchPerformed) {
+            setTimeout(() => {
+                const jobsSection = document.querySelector('.job-matches-area');
+                if (jobsSection) {
+                    jobsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 500);
+        }
+        
+        // Add animation to match scores
+        const matchScores = document.querySelectorAll('.match-percentage');
+        matchScores.forEach(score => {
+            const value = parseInt(score.textContent);
+            score.style.opacity = '0';
+            score.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                score.style.transition = 'all 0.5s ease';
+                score.style.opacity = '1';
+                score.style.transform = 'scale(1)';
+            }, Math.random() * 200);
+        });
+        
+        // Add click handlers for action buttons
+        const viewButtons = document.querySelectorAll('.btn-view-details');
+        viewButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(this.href, '_blank');
+            });
+        });
+        
+        // Add tooltips for skill tags
+        const skillTags = document.querySelectorAll('.job-skill-tag');
+        skillTags.forEach(tag => {
+            if (tag.classList.contains('matching')) {
+                tag.title = 'This skill matches your resume';
+            }
+        });
+        
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.classList.contains('search-input')) {
+                e.preventDefault();
+                searchForm.submit();
+            }
+        });
+        
+        // Add dynamic search suggestions (placeholder for future enhancement)
+        const queryInput = document.querySelector('#query');
+        if (queryInput) {
+            queryInput.addEventListener('input', function() {
+                // Future: Add search suggestions/autocomplete
+                console.log('Search query:', this.value);
+            });
+        }
+        
+        // Add responsive behavior for mobile
+        function handleResize() {
+            const isMobile = window.innerWidth < 768;
+            const mainContent = document.querySelector('.main-content-area');
+            
+            if (isMobile) {
+                mainContent.style.flexDirection = 'column';
+            } else {
+                mainContent.style.flexDirection = 'row';
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        handleResize();
+        
+        // Add success message animation
+        const messages = document.querySelectorAll('.alert');
+        messages.forEach(msg => {
+            msg.style.animation = 'slideInDown 0.5s ease';
+        });
     });
-});
+    
+    // Helper function to show notifications
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show`;
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const container = document.querySelector('.container');
+        container.insertBefore(notification, container.firstChild);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+    
+    // CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .job-card {
+            animation: fadeInUp 0.3s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 {% endblock %}

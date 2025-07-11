@@ -1,0 +1,529 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}Upload Resume - Smart Resume Matcher{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="upload-card">
+        <div class="upload-header">
+            <div class="upload-logo">📄</div>
+            <h1>Upload Your Resume</h1>
+            <p>Let AI analyze your resume and match you with perfect jobs</p>
+        </div>
+        
+        <div id="alert-container"></div>
+        
+        <!-- Upload Form -->
+        <div id="upload-form-container">
+            <div class="file-drop-zone" id="file-drop-zone">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Drop your resume here</h3>
+                <p>or <button type="button" class="btn-link" onclick="document.getElementById('file-input').click()">browse files</button></p>
+                <p class="text-muted">PDF files only, max 5MB</p>
+                <input type="file" id="file-input" accept=".pdf" style="display: none;">
+            </div>
+            
+            <div id="upload-progress" class="upload-progress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="progress-text">Uploading...</p>
+            </div>
+            
+            <div id="analysis-status" class="analysis-status" style="display: none;">
+                <div class="status-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h4>AI Analysis in Progress</h4>
+                <p id="analysis-text">Analyzing your resume...</p>
+                <div class="analysis-spinner"></div>
+            </div>
+            
+            <div id="upload-success" class="upload-success" style="display: none;">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h4>Resume Uploaded Successfully!</h4>
+                <p id="success-text">Your resume has been analyzed</p>
+                <div class="success-actions">
+                    <a href="/jobs/ai-matches/" class="btn-primary">View Job Matches</a>
+                    <button type="button" class="btn-secondary" onclick="resetUpload()">Upload Another</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.upload-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+}
+
+.upload-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 600px;
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.upload-logo {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.upload-header h1 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+}
+
+.upload-header p {
+    color: #666;
+    margin: 0;
+}
+
+.file-drop-zone {
+    border: 2px dashed #667eea;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: rgba(102, 126, 234, 0.05);
+    cursor: pointer;
+}
+
+.file-drop-zone:hover {
+    border-color: #764ba2;
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.file-drop-zone.dragover {
+    border-color: #764ba2;
+    background: rgba(102, 126, 234, 0.15);
+    transform: scale(1.02);
+}
+
+.upload-icon i {
+    font-size: 3rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.file-drop-zone h3 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #667eea;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+}
+
+.btn-link:hover {
+    color: #764ba2;
+}
+
+.upload-progress {
+    text-align: center;
+    padding: 2rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.analysis-status {
+    text-align: center;
+    padding: 2rem;
+}
+
+.status-icon i {
+    font-size: 3rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.analysis-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e9ecef;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 1rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.upload-success {
+    text-align: center;
+    padding: 2rem;
+}
+
+.success-icon i {
+    font-size: 3rem;
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+
+.success-actions {
+    margin-top: 1.5rem;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    margin: 0 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: none;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .upload-container {
+        padding: 10px;
+    }
+    
+    .upload-card {
+        padding: 20px;
+    }
+    
+    .file-drop-zone {
+        padding: 2rem 1rem;
+    }
+    
+    .upload-header h1 {
+        font-size: 1.5rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 Resume upload page loaded');
+    
+    // Check authentication
+    checkAuthentication();
+    
+    // Setup drag and drop
+    setupDragAndDrop();
+    
+    // Setup file input
+    setupFileInput();
+});
+
+function checkAuthentication() {
+    const token = localStorage.getItem('smart_resume_access_token');
+    if (!token) {
+        showAlert('Please login to upload your resume', 'error');
+        setTimeout(() => {
+            window.location.href = '/login/?next=' + encodeURIComponent(window.location.pathname);
+        }, 2000);
+        return;
+    }
+    console.log('✅ User authenticated, ready for upload');
+}
+
+function setupDragAndDrop() {
+    const dropZone = document.getElementById('file-drop-zone');
+    
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelection(files[0]);
+        }
+    });
+}
+
+function setupFileInput() {
+    const fileInput = document.getElementById('file-input');
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
+        }
+    });
+}
+
+function handleFileSelection(file) {
+    console.log('📄 File selected:', file.name);
+    
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        showAlert('Please select a PDF file', 'error');
+        return;
+    }
+    
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+        showAlert('File size must be less than 5MB', 'error');
+        return;
+    }
+    
+    // Start upload
+    uploadFile(file);
+}
+
+async function uploadFile(file) {
+    console.log('📤 Starting upload...');
+    
+    // Show upload progress
+    showUploadProgress();
+    
+    // Get JWT token
+    const token = localStorage.getItem('smart_resume_access_token');
+    if (!token) {
+        showAlert('Authentication required. Please login again.', 'error');
+        return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('original_filename', file.name);
+    
+    try {
+        // Upload file
+        const response = await fetch('/api/resume/upload/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log('✅ Upload successful:', data);
+            showAnalysisProgress(data.resume_id);
+        } else {
+            console.error('❌ Upload failed:', data);
+            showAlert(data.message || 'Upload failed', 'error');
+            resetUpload();
+        }
+        
+    } catch (error) {
+        console.error('❌ Upload error:', error);
+        showAlert('Network error during upload', 'error');
+        resetUpload();
+    }
+}
+
+function showUploadProgress() {
+    document.getElementById('upload-form-container').style.display = 'none';
+    document.getElementById('upload-progress').style.display = 'block';
+    
+    // Simulate progress animation
+    const progressFill = document.getElementById('progress-fill');
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 10;
+        progressFill.style.width = progress + '%';
+        if (progress >= 100) {
+            clearInterval(interval);
+        }
+    }, 100);
+}
+
+function showAnalysisProgress(resumeId) {
+    document.getElementById('upload-progress').style.display = 'none';
+    document.getElementById('analysis-status').style.display = 'block';
+    
+    // Check analysis status periodically
+    checkAnalysisStatus(resumeId);
+}
+
+async function checkAnalysisStatus(resumeId) {
+    const token = localStorage.getItem('smart_resume_access_token');
+    let attempts = 0;
+    const maxAttempts = 30; // 30 seconds max wait
+    
+    const checkStatus = async () => {
+        try {
+            const response = await fetch(`/api/resume/status/${resumeId}/`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                console.log('📊 Analysis status:', data.status);
+                
+                if (data.status === 'completed') {
+                    showUploadSuccess(data);
+                } else if (data.status === 'failed') {
+                    showAlert('Resume analysis failed. Please try again.', 'error');
+                    resetUpload();
+                } else {
+                    // Still processing, check again
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(checkStatus, 1000);
+                    } else {
+                        showAlert('Analysis is taking longer than expected. Please check back later.', 'info');
+                        resetUpload();
+                    }
+                }
+            } else {
+                console.error('❌ Status check failed:', data);
+                showAlert('Failed to check analysis status', 'error');
+                resetUpload();
+            }
+            
+        } catch (error) {
+            console.error('❌ Status check error:', error);
+            attempts++;
+            if (attempts < maxAttempts) {
+                setTimeout(checkStatus, 1000);
+            } else {
+                showAlert('Network error checking status', 'error');
+                resetUpload();
+            }
+        }
+    };
+    
+    checkStatus();
+}
+
+function showUploadSuccess(data) {
+    document.getElementById('analysis-status').style.display = 'none';
+    document.getElementById('upload-success').style.display = 'block';
+    
+    document.getElementById('success-text').textContent = 
+        `Found ${data.skills_count || 0} skills in your resume. Ready to find matching jobs!`;
+}
+
+function resetUpload() {
+    document.getElementById('upload-progress').style.display = 'none';
+    document.getElementById('analysis-status').style.display = 'none';
+    document.getElementById('upload-success').style.display = 'none';
+    document.getElementById('upload-form-container').style.display = 'block';
+    
+    // Reset file input
+    document.getElementById('file-input').value = '';
+}
+
+function showAlert(message, type = 'info') {
+    const container = document.getElementById('alert-container');
+    container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    
+    // Auto-hide success and info alerts
+    if (type === 'success' || type === 'info') {
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, 5000);
+    }
+}
+</script>
+{% endblock %}

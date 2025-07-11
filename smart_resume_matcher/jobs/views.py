@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.apps import apps
 from .services import HHApiClient
 from .job_matcher import JobMatcher
-from resumes.enhanced_job_matcher import EnhancedJobMatcher
+from resumes.enhanced_job_matcher import AdvancedJobMatcher
 from accounts.decorators import jwt_login_required
 
 # Dynamically load models to avoid circular imports
@@ -27,7 +27,7 @@ def job_list_view(request):
         return redirect('jwt_resume_upload')
     
     # Create enhanced job matcher
-    enhanced_matcher = EnhancedJobMatcher(user=request.user, resume=user_resume)
+    enhanced_matcher = AdvancedJobMatcher(user=request.user, resume=user_resume)
     
     # Try to get existing job matches, if none exist, generate them
     job_matches = JobMatch.objects.filter(resume=user_resume).select_related('job')
@@ -35,7 +35,25 @@ def job_list_view(request):
     if not job_matches.exists():
         # Generate enhanced job matches
         try:
-            enhanced_matcher.find_and_create_job_matches()
+            import asyncio
+            enhanced_matches = asyncio.run(enhanced_matcher.generate_advanced_job_matches(limit=20))
+            
+            # Create JobMatch objects from enhanced matches
+            for match_data in enhanced_matches:
+                if match_data.get('job'):
+                    job = match_data['job']
+                    JobMatch.objects.get_or_create(
+                        job=job,
+                        resume=user_resume,
+                        defaults={
+                            'user': request.user,
+                            'match_score': match_data.get('match_score', 0),
+                            'match_details': match_data.get('match_details', {}),
+                            'matching_skills': match_data.get('matching_skills', []),
+                            'missing_skills': match_data.get('missing_skills', [])
+                        }
+                    )
+            
             job_matches = JobMatch.objects.filter(resume=user_resume).select_related('job')
             if job_matches.exists():
                 messages.success(request, f"Generated {job_matches.count()} enhanced job matches based on your skills!")
@@ -87,7 +105,7 @@ def ai_job_matches_view(request):
     auto_search = request.GET.get('auto_search', False) == 'true'
     
     # Create enhanced job matcher instance for better matching
-    enhanced_job_matcher = EnhancedJobMatcher(user=request.user, resume=user_resume)
+    enhanced_job_matcher = AdvancedJobMatcher(user=request.user, resume=user_resume)
     
     # Also keep legacy matcher for fallback
     job_matcher = JobMatcher(user=request.user, resume=user_resume)
@@ -111,35 +129,82 @@ def ai_job_matches_view(request):
         )
         
         try:
-            # Use enhanced job matching for better results
-            enhanced_matches = enhanced_job_matcher.generate_job_matches(limit=20)
+            # Use simpler job matching approach for web interface
+            # Get jobs from database first
+            all_jobs = Job.objects.filter(is_active=True).order_by('-created_at')[:50]
             
-            # Convert enhanced matches to jobs list and ensure JobMatch objects exist
-            jobs = []
-            for match_data in enhanced_matches:
-                if match_data.get('job'):
-                    job = match_data['job']
+            if not all_jobs:
+                messages.info(request, "No active jobs found in the database.")
+            else:
+                # Simple skill-based matching
+                user_skills = []
+                if hasattr(user_resume, 'extracted_skills') and user_resume.extracted_skills:
+                    user_skills = user_resume.extracted_skills
+                
+                # Convert to simple job list
+                for job in all_jobs:
                     jobs.append(job)
                     
-                    # Ensure JobMatch object exists with enhanced analysis data
+                    # Enhanced skill matching with tech job prioritization
+                    match_score = 0
+                    matched_skills = []
+                    
+                    if user_skills:
+                        # Get job content for matching
+                        job_text = f"{job.title} {job.description or ''} {job.requirements or ''}".lower()
+                        
+                        # Find matching skills
+                        matched_skills = [skill for skill in user_skills if skill.lower() in job_text]
+                        
+                        # Calculate base match score
+                        if matched_skills:
+                            match_score = (len(matched_skills) / len(user_skills)) * 100
+                        else:
+                            match_score = 10  # Minimal score if no skills match
+                        
+                        # Tech job priority boost
+                        tech_keywords = ['developer', 'engineer', 'programmer', 'software', 'tech', 'python', 'django', 'react', 'javascript', 'frontend', 'backend', 'full-stack', 'data scientist', 'analyst', 'architect', 'devops', 'qa', 'tester']
+                        tech_skills = ['python', 'django', 'react', 'javascript', 'java', 'c++', 'sql', 'html', 'css', 'git', 'docker', 'kubernetes', 'aws', 'azure']
+                        
+                        # Check if user has tech skills
+                        user_tech_skills = [skill for skill in user_skills if skill.lower() in tech_skills]
+                        
+                        if user_tech_skills:
+                            # Check if job is tech-related
+                            is_tech_job = any(keyword in job_text for keyword in tech_keywords)
+                            
+                            if is_tech_job:
+                                # Boost score for tech jobs when user has tech skills
+                                match_score = min(match_score * 1.5, 100)
+                            else:
+                                # Reduce score for non-tech jobs when user has many tech skills
+                                if len(user_tech_skills) > 2:
+                                    match_score = max(match_score * 0.7, 20)
+                    
+                    # Ensure minimum score
+                    match_score = max(match_score, 5)
+                    
+                    # Round to nearest integer
+                    match_score = round(match_score)
+                    
+                    # Ensure JobMatch object exists
                     job_match, created = JobMatch.objects.get_or_create(
                         job=job,
                         resume=user_resume,
                         defaults={
                             'user': request.user,
-                            'match_score': match_data.get('match_score', 0),
-                            'match_details': match_data.get('match_details', {}),
-                            'matching_skills': match_data.get('matching_skills', []),
-                            'missing_skills': match_data.get('missing_skills', [])
+                            'match_score': match_score,
+                            'match_details': {'enhanced_match': True, 'tech_prioritized': True},
+                            'matching_skills': matched_skills,
+                            'missing_skills': []
                         }
                     )
                     
-                    # Update existing match with latest enhanced data
+                    # Update existing match with new score
                     if not created:
-                        job_match.match_score = match_data.get('match_score', job_match.match_score)
-                        job_match.match_details = match_data.get('match_details', job_match.match_details)
-                        job_match.matching_skills = match_data.get('matching_skills', job_match.matching_skills)
-                        job_match.missing_skills = match_data.get('missing_skills', job_match.missing_skills)
+                        job_match.match_score = match_score
+                        job_match.matching_skills = matched_skills
+                        job_match.match_details = {'enhanced_match': True, 'tech_prioritized': True}
                         job_match.save()
             
             # If no enhanced matches found, fallback to legacy matcher

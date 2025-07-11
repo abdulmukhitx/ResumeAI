@@ -1,0 +1,774 @@
+{% extends 'base_modern.html' %}
+{% load job_filters %}
+
+{% block title %}AI Job Matching - Smart Resume Matcher{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern AI Job Matches Page Styles */
+    .ai-matches-header {
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        color: white;
+        padding: 3rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ai-matches-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1;
+    }
+
+    .ai-matches-header .container {
+        position: relative;
+        z-index: 2;
+    }
+
+    .ai-matches-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .ai-matches-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+
+    .search-section {
+        background: white;
+        padding: 2rem 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .search-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .search-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .search-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #1F1C2C;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #928DAB;
+        box-shadow: 0 0 0 3px rgba(146, 141, 171, 0.1);
+    }
+
+    .search-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-ai-search {
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-ai-search:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(146, 141, 171, 0.4);
+        color: white;
+    }
+
+    .btn-auto-match {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-auto-match:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+
+    .main-content-area {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+    }
+
+    .profile-summary {
+        flex: 0 0 300px;
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 120px;
+        height: fit-content;
+    }
+
+    .profile-header {
+        text-align: center;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f8f9fa;
+        margin-bottom: 1rem;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .profile-avatar i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .profile-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-level {
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .profile-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-section h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin-bottom: 0.75rem;
+    }
+
+    .skills-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .skill-tag {
+        background: #f8f9fa;
+        color: #1F1C2C;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid #e9ecef;
+    }
+
+    .job-matches-area {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .matches-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .matches-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin: 0;
+    }
+
+    .matches-count {
+        background: #f8f9fa;
+        color: #1F1C2C;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+
+    .job-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .job-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-color: #928DAB;
+    }
+
+    .job-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .job-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin-bottom: 0.5rem;
+    }
+
+    .job-company {
+        color: #928DAB;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .job-location {
+        color: #6c757d;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .match-score {
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .match-percentage {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .match-percentage.high {
+        color: #28a745;
+    }
+
+    .match-percentage.medium {
+        color: #ffc107;
+    }
+
+    .match-percentage.low {
+        color: #dc3545;
+    }
+
+    .match-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+    }
+
+    .job-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .job-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .job-skills {
+        margin-bottom: 1rem;
+    }
+
+    .job-skills-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1F1C2C;
+        margin-bottom: 0.5rem;
+    }
+
+    .job-skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .job-skill-tag {
+        background: #f8f9fa;
+        color: #1F1C2C;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: 1px solid #e9ecef;
+    }
+
+    .job-skill-tag.matching {
+        background: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+    }
+
+    .job-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-view-details {
+        background: linear-gradient(135deg, #928DAB 0%, #1F1C2C 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-view-details:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(146, 141, 171, 0.4);
+        color: white;
+    }
+
+    .btn-apply {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-apply:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+
+    .no-matches {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .no-matches i {
+        font-size: 3rem;
+        color: #928DAB;
+        margin-bottom: 1rem;
+    }
+
+    .no-matches h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #1F1C2C;
+    }
+
+    .pagination-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .pagination .page-link {
+        color: #928DAB;
+        border-color: #e9ecef;
+        padding: 0.5rem 1rem;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #928DAB;
+        color: white;
+        border-color: #928DAB;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #928DAB;
+        border-color: #928DAB;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .main-content-area {
+            flex-direction: column;
+        }
+
+        .profile-summary {
+            flex: none;
+            position: static;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .search-form {
+            flex-direction: column;
+        }
+
+        .search-group {
+            min-width: 100%;
+        }
+
+        .search-actions {
+            justify-content: center;
+        }
+
+        .job-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .match-score {
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .ai-matches-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- AI Matches Header -->
+<div class="ai-matches-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="ai-matches-title">
+                    <i class="fas fa-brain me-3"></i>
+                    AI Job Matching
+                </h1>
+                <p class="ai-matches-subtitle">
+                    Discover opportunities perfectly tailored to your skills and experience
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="stats-preview">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ jobs.paginator.count|default:0 }}</div>
+                        <div class="stat-label">Matches Found</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="search-section">
+    <div class="container">
+        <form method="get" class="search-form">
+            <div class="search-group">
+                <label for="query">Job Title or Keywords</label>
+                <input type="text" id="query" name="query" class="search-input" 
+                       placeholder="e.g., Software Engineer, Data Scientist"
+                       value="{{ search_query }}">
+            </div>
+            <div class="search-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" name="location" class="search-input"
+                       placeholder="e.g., New York, Remote"
+                       value="{{ location }}">
+            </div>
+            <div class="search-actions">
+                <button type="submit" class="btn-ai-search">
+                    <i class="fas fa-search"></i>
+                    Search Jobs
+                </button>
+                <button type="submit" name="auto_search" value="true" class="btn-auto-match">
+                    <i class="fas fa-magic"></i>
+                    Auto-Match
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="main-content-area">
+        <!-- Profile Summary -->
+        <div class="profile-summary">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-name">{{ user.first_name }} {{ user.last_name }}</div>
+                <div class="profile-level">{{ user_resume.experience_level|title|default:"Professional" }}</div>
+            </div>
+
+            {% if user_resume.extracted_skills %}
+            <div class="profile-section">
+                <h4>Top Skills</h4>
+                <div class="skills-grid">
+                    {% for skill in user_resume.extracted_skills|slice:":6" %}
+                        <span class="skill-tag">{{ skill }}</span>
+                    {% endfor %}
+                    {% if user_resume.extracted_skills|length > 6 %}
+                        <span class="skill-tag">+{{ user_resume.extracted_skills|length|add:"-6" }} more</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="profile-section">
+                <h4>Resume Status</h4>
+                <div class="resume-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-file-alt text-success"></i>
+                        <span>Resume Uploaded</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <span>AI Analyzed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Matches -->
+        <div class="job-matches-area">
+            <div class="matches-header">
+                <h2 class="matches-title">Job Matches</h2>
+                {% if jobs %}
+                    <div class="matches-count">
+                        {{ jobs.paginator.count }} match{{ jobs.paginator.count|pluralize:"es" }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if jobs %}
+                {% for job in jobs %}
+                    {% with job_match=job_matches_dict|get_item:job.id %}
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div class="job-info">
+                                <h3 class="job-title">{{ job.title }}</h3>
+                                <div class="job-company">{{ job.company }}</div>
+                                <div class="job-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ job.location|default:"Not specified" }}
+                                </div>
+                            </div>
+                            <div class="match-score">
+                                {% if job_match %}
+                                    <div class="match-percentage {% if job_match.match_score >= 75 %}high{% elif job_match.match_score >= 50 %}medium{% else %}low{% endif %}">
+                                        {{ job_match.match_score|floatformat:0 }}%
+                                    </div>
+                                    <div class="match-label">Match</div>
+                                {% else %}
+                                    <div class="match-percentage low">0%</div>
+                                    <div class="match-label">Match</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="job-details">
+                            {% if job.salary_min or job.salary_max %}
+                                <div class="job-detail-item">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>
+                                        {% if job.salary_min and job.salary_max %}
+                                            ${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}
+                                        {% elif job.salary_min %}
+                                            From ${{ job.salary_min|floatformat:0 }}
+                                        {% elif job.salary_max %}
+                                            Up to ${{ job.salary_max|floatformat:0 }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            {% endif %}
+                            {% if job.employment_type %}
+                                <div class="job-detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>{{ job.employment_type|title }}</span>
+                                </div>
+                            {% endif %}
+                            {% if job.experience_level %}
+                                <div class="job-detail-item">
+                                    <i class="fas fa-user-graduate"></i>
+                                    <span>{{ job.experience_level|title }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if job.description %}
+                            <div class="job-description">
+                                <p>{{ job.description|truncatewords:30 }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if job_match.matching_skills %}
+                            <div class="job-skills">
+                                <div class="job-skills-title">Matching Skills:</div>
+                                <div class="job-skills-list">
+                                    {% for skill in job_match.matching_skills|slice:":5" %}
+                                        <span class="job-skill-tag matching">{{ skill }}</span>
+                                    {% endfor %}
+                                    {% if job_match.matching_skills|length > 5 %}
+                                        <span class="job-skill-tag">+{{ job_match.matching_skills|length|add:"-5" }} more</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="job-actions">
+                            {% if job.url %}
+                                <a href="{{ job.url }}" target="_blank" class="btn-view-details">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    View Job
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'job_detail' job.id %}" class="btn-view-details">
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </a>
+                            <a href="{% url 'job_application' job.id %}" class="btn-apply">
+                                <i class="fas fa-paper-plane"></i>
+                                Apply
+                            </a>
+                        </div>
+                    </div>
+                    {% endwith %}
+                {% endfor %}
+
+                <!-- Pagination -->
+                {% if jobs.has_other_pages %}
+                    <div class="pagination-wrapper">
+                        <nav>
+                            <ul class="pagination">
+                                {% if jobs.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ jobs.previous_page_number }}{% if search_query %}&query={{ search_query }}{% endif %}{% if location %}&location={{ location }}{% endif %}">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in jobs.paginator.page_range %}
+                                    {% if jobs.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if search_query %}&query={{ search_query }}{% endif %}{% if location %}&location={{ location }}{% endif %}">
+                                                {{ num }}
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if jobs.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ jobs.next_page_number }}{% if search_query %}&query={{ search_query }}{% endif %}{% if location %}&location={{ location }}{% endif %}">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="no-matches">
+                    <i class="fas fa-search"></i>
+                    <h3>No Job Matches Found</h3>
+                    {% if search_performed %}
+                        <p>We couldn't find any jobs matching your search criteria.</p>
+                        <p>Try adjusting your search terms or use the Auto-Match feature to find jobs based on your resume.</p>
+                    {% else %}
+                        <p>Start by searching for jobs or use Auto-Match to find opportunities based on your resume.</p>
+                    {% endif %}
+                    <div class="mt-3">
+                        <button type="button" class="btn-auto-match" onclick="document.querySelector('[name=auto_search]').click()">
+                            <i class="fas fa-magic"></i>
+                            Try Auto-Match
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-match functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show loading state for auto-match
+        const autoMatchBtn = document.querySelector('.btn-auto-match');
+        if (autoMatchBtn) {
+            autoMatchBtn.addEventListener('click', function() {
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finding Matches...';
+                this.disabled = true;
+            });
+        }
+    });
+</script>
+{% endblock %}

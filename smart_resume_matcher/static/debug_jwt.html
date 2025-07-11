@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JWT Auth Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .pass { background-color: #d4edda; color: #155724; }
+        .fail { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>JWT Authentication Debug Test</h1>
+    
+    <div class="test-section">
+        <h3>Auth Manager Status</h3>
+        <div id="auth-manager-status">Checking...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Token Storage</h3>
+        <div id="token-status">Checking...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Navigation Elements</h3>
+        <div id="nav-status">Checking...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Console Output</h3>
+        <pre id="console-output"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Actions</h3>
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testUpdateNavigation()">Test Update Navigation</button>
+        <button onclick="clearTokens()">Clear Tokens</button>
+        <button onclick="refreshStatus()">Refresh Status</button>
+    </div>
+
+    <!-- Load the JWT auth scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/jwt_auth_clean.js"></script>
+
+    <script>
+        let consoleLog = [];
+        
+        // Intercept console.log to show in page
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            consoleLog.push(args.join(' '));
+            updateConsoleOutput();
+        };
+        
+        function updateConsoleOutput() {
+            document.getElementById('console-output').textContent = consoleLog.slice(-20).join('\n');
+        }
+        
+        function refreshStatus() {
+            checkAuthManager();
+            checkTokens();
+            checkNavigation();
+        }
+        
+        function checkAuthManager() {
+            const statusDiv = document.getElementById('auth-manager-status');
+            
+            if (window.authManager) {
+                if (typeof window.authManager.isAuthenticated === 'function') {
+                    const isAuth = window.authManager.isAuthenticated();
+                    const user = window.authManager.getCurrentUser();
+                    
+                    statusDiv.innerHTML = `
+                        <div class="pass">✅ Auth Manager exists and functional</div>
+                        <div class="${isAuth ? 'pass' : 'fail'}">
+                            Authentication Status: ${isAuth ? 'AUTHENTICATED' : 'NOT AUTHENTICATED'}
+                        </div>
+                        ${user ? `<div class="info">User: ${user.email} (${user.first_name} ${user.last_name})</div>` : ''}
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="fail">❌ Auth Manager exists but missing methods</div>';
+                }
+            } else {
+                statusDiv.innerHTML = '<div class="fail">❌ Auth Manager not found</div>';
+            }
+        }
+        
+        function checkTokens() {
+            const statusDiv = document.getElementById('token-status');
+            const accessToken = localStorage.getItem('smart_resume_access_token');
+            const refreshToken = localStorage.getItem('smart_resume_refresh_token');
+            const userData = localStorage.getItem('smart_resume_user_data');
+            
+            statusDiv.innerHTML = `
+                <div class="${accessToken ? 'pass' : 'fail'}">
+                    Access Token: ${accessToken ? '✅ Present' : '❌ Missing'}
+                </div>
+                <div class="${refreshToken ? 'pass' : 'fail'}">
+                    Refresh Token: ${refreshToken ? '✅ Present' : '❌ Missing'}
+                </div>
+                <div class="${userData ? 'pass' : 'fail'}">
+                    User Data: ${userData ? '✅ Present' : '❌ Missing'}
+                </div>
+                ${accessToken ? `<div class="info">Access Token: ${accessToken.substring(0, 50)}...</div>` : ''}
+            `;
+        }
+        
+        function checkNavigation() {
+            const statusDiv = document.getElementById('nav-status');
+            const authElements = document.querySelectorAll('[data-jwt-auth]');
+            const noAuthElements = document.querySelectorAll('[data-jwt-no-auth]');
+            
+            statusDiv.innerHTML = `
+                <div class="info">JWT Auth Elements: ${authElements.length}</div>
+                <div class="info">JWT No-Auth Elements: ${noAuthElements.length}</div>
+            `;
+        }
+        
+        async function testLogin() {
+            try {
+                if (!window.authManager) {
+                    throw new Error('Auth manager not available');
+                }
+                
+                const result = await window.authManager.login('a_nurkazy@kbtu.kz', 'testpass123');
+                console.log('✅ Login successful:', result);
+                refreshStatus();
+            } catch (error) {
+                console.error('❌ Login failed:', error);
+            }
+        }
+        
+        function testUpdateNavigation() {
+            if (window.authManager && typeof window.authManager.updateNavigation === 'function') {
+                console.log('Testing navigation update...');
+                window.authManager.updateNavigation();
+                console.log('Navigation update completed');
+            } else {
+                console.error('Auth manager or updateNavigation method not available');
+            }
+        }
+        
+        function clearTokens() {
+            localStorage.clear();
+            console.log('Tokens cleared');
+            refreshStatus();
+        }
+        
+        // Initial status check
+        setTimeout(() => {
+            console.log('Page loaded, checking initial status...');
+            refreshStatus();
+        }, 1000);
+        
+        // Check again after 2 seconds
+        setTimeout(() => {
+            console.log('Delayed status check...');
+            refreshStatus();
+        }, 2000);
+    </script>
+</body>
+</html>

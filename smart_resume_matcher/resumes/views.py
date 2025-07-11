@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.utils import timezone
 from django.apps import apps
 from .forms import ResumeUploadForm
-from .enhanced_analyzer import EnhancedAIAnalyzer
-from .enhanced_job_matcher import EnhancedJobMatcher
+from .enhanced_analyzer import AdvancedAIAnalyzer
+from .enhanced_job_matcher import AdvancedJobMatcher
 
 # Dynamically load models to avoid circular imports
 Resume = apps.get_model('resumes', 'Resume')
@@ -39,7 +39,7 @@ def analyze_resume(resume_id):
     
     try:
         # Initialize Enhanced AI analyzer
-        analyzer = EnhancedAIAnalyzer()
+        analyzer = AdvancedAIAnalyzer()
         
         # Extract text from PDF
         try:
@@ -104,10 +104,9 @@ def analyze_resume(resume_id):
         
         # Find matching jobs using enhanced matcher
         try:
-            enhanced_matcher = EnhancedJobMatcher(resume.user, resume)
-            enhanced_matcher.find_and_create_job_matches()
+            find_matching_jobs(resume)
         except Exception as e:
-            logger.error(f"Error finding matching jobs with enhanced matcher: {e}")
+            logger.error(f"Error finding matching jobs: {e}")
             # Don't fail the whole process if job matching fails
         
         return True
