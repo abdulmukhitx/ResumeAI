@@ -6,6 +6,8 @@ from django.core.paginator import Paginator
 from django.apps import apps
 from .services import HHApiClient
 from .job_matcher import JobMatcher
+from .enhanced_hh_client import EnhancedHHApiClient
+from .realtime_matcher import RealTimeJobMatcher
 from resumes.enhanced_job_matcher import AdvancedJobMatcher
 from accounts.decorators import jwt_login_required
 
@@ -89,7 +91,7 @@ def job_list_view(request):
 
 @jwt_login_required
 def ai_job_matches_view(request):
-    """View to display AI-powered job matches based on resume analysis"""
+    """View to display AI-powered job matches fetched from HH.ru and HH.kz APIs"""
     # Get latest user resume
     user_resume = Resume.objects.filter(user=request.user, is_active=True).first()
     
@@ -97,26 +99,28 @@ def ai_job_matches_view(request):
         messages.warning(request, "Please upload your resume to see AI job matches.")
         return redirect('jwt_resume_upload')
     
+    # Import real-time matcher
+    from .realtime_hh_client import RealTimeJobMatcher
+    
     # Initialize variables
     jobs = []
     search_performed = False
-    search_query = request.GET.get('query', '')
+    search_query = request.GET.get('search', '') or request.GET.get('query', '')
     location = request.GET.get('location', '')
-    auto_search = request.GET.get('auto_search', False) == 'true'
+    auto_match = request.GET.get('auto_match', False) == 'true'
     
-    # Create enhanced job matcher instance for better matching
-    enhanced_job_matcher = AdvancedJobMatcher(user=request.user, resume=user_resume)
-    
-    # Also keep legacy matcher for fallback
-    job_matcher = JobMatcher(user=request.user, resume=user_resume)
+    # Create real-time job matcher
+    realtime_matcher = RealTimeJobMatcher(user=request.user, resume=user_resume)
     
     # Perform search if requested
-    if auto_search or search_query or location:
+    if auto_match or search_query or location:
         search_performed = True
         
-        # If auto_search is enabled, generate search query from resume
-        if auto_search and not search_query:
-            search_query = job_matcher.generate_search_query_from_resume()
+        # For auto-match, use skills from resume
+        if auto_match and not search_query:
+            if user_resume.extracted_skills:
+                # Use first few skills as search query
+                search_query = ', '.join(user_resume.extracted_skills[:3])
         
         # Create JobSearch record
         job_search = JobSearch.objects.create(
@@ -129,97 +133,32 @@ def ai_job_matches_view(request):
         )
         
         try:
-            # Use simpler job matching approach for web interface
-            # Get jobs from database first
-            all_jobs = Job.objects.filter(is_active=True).order_by('-created_at')[:50]
+            # Fetch jobs from HH.ru and HH.kz APIs in real-time
+            matched_jobs = realtime_matcher.find_matching_jobs(
+                search_query=search_query,
+                location=location,
+                limit=50
+            )
             
-            if not all_jobs:
-                messages.info(request, "No active jobs found in the database.")
-            else:
-                # Simple skill-based matching
-                user_skills = []
-                if hasattr(user_resume, 'extracted_skills') and user_resume.extracted_skills:
-                    user_skills = user_resume.extracted_skills
+            # Convert job dictionaries to job-like objects for template compatibility
+            jobs = []
+            for job_data in matched_jobs:
+                # Handle date formatting for template compatibility
+                published_at = job_data.get('published_at')
+                if published_at:
+                    try:
+                        from datetime import datetime
+                        if isinstance(published_at, str):
+                            # Parse ISO format datetime string
+                            published_at = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
+                        job_data['published_at'] = published_at
+                    except (ValueError, TypeError):
+                        # If parsing fails, set to current time
+                        job_data['published_at'] = timezone.now()
                 
-                # Convert to simple job list
-                for job in all_jobs:
-                    jobs.append(job)
-                    
-                    # Enhanced skill matching with tech job prioritization
-                    match_score = 0
-                    matched_skills = []
-                    
-                    if user_skills:
-                        # Get job content for matching
-                        job_text = f"{job.title} {job.description or ''} {job.requirements or ''}".lower()
-                        
-                        # Find matching skills
-                        matched_skills = [skill for skill in user_skills if skill.lower() in job_text]
-                        
-                        # Calculate base match score
-                        if matched_skills:
-                            match_score = (len(matched_skills) / len(user_skills)) * 100
-                        else:
-                            match_score = 10  # Minimal score if no skills match
-                        
-                        # Tech job priority boost
-                        tech_keywords = ['developer', 'engineer', 'programmer', 'software', 'tech', 'python', 'django', 'react', 'javascript', 'frontend', 'backend', 'full-stack', 'data scientist', 'analyst', 'architect', 'devops', 'qa', 'tester']
-                        tech_skills = ['python', 'django', 'react', 'javascript', 'java', 'c++', 'sql', 'html', 'css', 'git', 'docker', 'kubernetes', 'aws', 'azure']
-                        
-                        # Check if user has tech skills
-                        user_tech_skills = [skill for skill in user_skills if skill.lower() in tech_skills]
-                        
-                        if user_tech_skills:
-                            # Check if job is tech-related
-                            is_tech_job = any(keyword in job_text for keyword in tech_keywords)
-                            
-                            if is_tech_job:
-                                # Boost score for tech jobs when user has tech skills
-                                match_score = min(match_score * 1.5, 100)
-                            else:
-                                # Reduce score for non-tech jobs when user has many tech skills
-                                if len(user_tech_skills) > 2:
-                                    match_score = max(match_score * 0.7, 20)
-                    
-                    # Ensure minimum score
-                    match_score = max(match_score, 5)
-                    
-                    # Round to nearest integer
-                    match_score = round(match_score)
-                    
-                    # Ensure JobMatch object exists
-                    job_match, created = JobMatch.objects.get_or_create(
-                        job=job,
-                        resume=user_resume,
-                        defaults={
-                            'user': request.user,
-                            'match_score': match_score,
-                            'match_details': {'enhanced_match': True, 'tech_prioritized': True},
-                            'matching_skills': matched_skills,
-                            'missing_skills': []
-                        }
-                    )
-                    
-                    # Update existing match with new score
-                    if not created:
-                        job_match.match_score = match_score
-                        job_match.matching_skills = matched_skills
-                        job_match.match_details = {'enhanced_match': True, 'tech_prioritized': True}
-                        job_match.save()
-            
-            # If no enhanced matches found, fallback to legacy matcher
-            if not jobs:
-                job_matches = job_matcher.find_matching_jobs(search_query=search_query, location=location)
-                
-                # Ensure job_matches is not None before processing
-                if job_matches is None:
-                    job_matches = []
-                    messages.warning(request, "No matches returned. Please try different search terms.")
-                
-                # Extract jobs from legacy matcher
-                for match in job_matches:
-                    if isinstance(match, tuple) and len(match) >= 3 and match[0] is not None:
-                        jobs.append(match[0])
+                # Create a simple object that behaves like a Django model
+                job_obj = type('Job', (), job_data)()
+                jobs.append(job_obj)
             
             job_search.total_found = len(jobs)
             job_search.jobs_analyzed = len(jobs)
@@ -230,7 +169,7 @@ def ai_job_matches_view(request):
             
             # Success message
             if jobs:
-                messages.success(request, f"Found {len(jobs)} job matches based on your resume profile.")
+                messages.success(request, f"Found {len(jobs)} fresh job matches from HH.ru and HH.kz!")
             else:
                 messages.info(request, "No matching jobs found. Try different search terms or location.")
         
@@ -243,32 +182,97 @@ def ai_job_matches_view(request):
             # Log the detailed error for admins
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Job matching error: {str(e)}", exc_info=True)
+            logger.error(f"Real-time job matching error: {str(e)}", exc_info=True)
             
             # User-friendly error message
-            messages.error(request, f"Error finding job matches: {str(e)}")
+            messages.error(request, f"Error fetching jobs from HH APIs: {str(e)}")
     
     # Pagination
     paginator = Paginator(jobs, 10)
     page_number = request.GET.get('page', 1)
     jobs_page = paginator.get_page(page_number)
     
-    # Get job matches for the current page of jobs
-    job_matches_dict = {}
+    # Create job matches for template compatibility
+    job_matches = []
     if jobs_page:
-        job_ids = [job.id for job in jobs_page]
-        job_matches = JobMatch.objects.filter(
-            job_id__in=job_ids, 
-            resume=user_resume
-        ).select_related('job')
+        for job in jobs_page:
+            # Create a match object from the job data
+            match_obj = type('JobMatch', (), {
+                'job': job,
+                'match_score': getattr(job, 'match_score', 0),
+                'matching_skills': getattr(job, 'matching_skills', []),
+                'missing_skills': getattr(job, 'missing_skills', [])
+            })()
+            
+            job_matches.append(match_obj)
+    
+    # Calculate statistics
+    total_jobs = len(jobs)
+    avg_match_score = 0
+    top_skills_count = 0
+    new_jobs_count = 0
+    
+    if job_matches:
+        # Calculate average match score
+        match_scores = [getattr(match, 'match_score', 0) for match in job_matches]
+        avg_match_score = sum(match_scores) / len(match_scores) if match_scores else 0
         
+        # Count unique skills
+        all_skills = set()
         for match in job_matches:
-            job_matches_dict[match.job.id] = match
+            matching_skills = getattr(match, 'matching_skills', [])
+            if isinstance(matching_skills, list):
+                all_skills.update(matching_skills)
+        top_skills_count = len(all_skills)
+        
+        # Count new jobs (assume all real-time jobs are new)
+        new_jobs_count = len(job_matches)
+    
+    # Get user skills for template
+    user_skills = []
+    if user_resume and user_resume.extracted_skills:
+        user_skills = user_resume.extracted_skills
+    
+    # Handle AJAX request for auto-match
+    if auto_match and request.headers.get('Accept') == 'application/json':
+        from django.http import JsonResponse
+        
+        matches_data = []
+        for match in job_matches:
+            job = match.job
+            matches_data.append({
+                'job': {
+                    'id': getattr(job, 'id', 0),
+                    'title': getattr(job, 'title', ''),
+                    'company': getattr(job, 'company', ''),
+                    'location': getattr(job, 'location', ''),
+                    'description': getattr(job, 'description', ''),
+                    'skills': getattr(job, 'skills', []),
+                    'salary': getattr(job, 'salary', ''),
+                    'posted_date': getattr(job, 'posted_date', ''),
+                },
+                'match_score': match.match_score
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'matches': matches_data,
+            'stats': {
+                'total_jobs': total_jobs,
+                'avg_match': avg_match_score,
+                'top_skills': top_skills_count,
+                'new_jobs': new_jobs_count
+            }
+        })
     
     context = {
         'user_resume': user_resume,
         'jobs': jobs_page,
-        'job_matches_dict': job_matches_dict,
+        'job_matches': job_matches,
+        'avg_match_score': avg_match_score,
+        'top_skills_count': top_skills_count,
+        'new_jobs_count': new_jobs_count,
+        'user_skills': user_skills,
         'search_performed': search_performed,
         'search_query': search_query,
         'location': location

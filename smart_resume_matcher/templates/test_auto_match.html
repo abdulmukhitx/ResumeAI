@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Match Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .test-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .success {
+            background: #d4edda !important;
+            border-color: #c3e6cb !important;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da !important;
+            border-color: #f5c6cb !important;
+            color: #721c24;
+        }
+        .warning {
+            background: #fff3cd !important;
+            border-color: #ffeaa7 !important;
+            color: #856404;
+        }
+        .info {
+            background: #d1ecf1 !important;
+            border-color: #bee5eb !important;
+            color: #0c5460;
+        }
+        .token-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #666;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Auto-Match Functionality Test</h1>
+        
+        <h2>1. Authentication Test</h2>
+        <button class="test-button" onclick="testLogin()">Login & Get Token</button>
+        <div id="authResult" class="result">Click "Login & Get Token" to start...</div>
+        
+        <h2>2. Auto-Match Test</h2>
+        <input type="text" id="tokenInput" class="token-input" placeholder="JWT Token will appear here after login..." readonly>
+        <button class="test-button" onclick="testAutoMatch()">Test Auto-Match</button>
+        <div id="autoMatchResult" class="result">Login first, then click "Test Auto-Match"...</div>
+        
+        <h2>3. Error Handling Test</h2>
+        <button class="test-button" onclick="testInvalidToken()">Test Invalid Token</button>
+        <button class="test-button" onclick="testNoToken()">Test No Token</button>
+        <div id="errorResult" class="result">Click error test buttons to test error handling...</div>
+    </div>
+
+    <script>
+        let currentToken = null;
+        
+        async function testLogin() {
+            const resultDiv = document.getElementById('authResult');
+            const tokenInput = document.getElementById('tokenInput');
+            
+            resultDiv.textContent = '🔄 Logging in...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const response = await fetch('/api/auth/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'test@example.com',
+                        password: 'testpass123'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                currentToken = data.access;
+                tokenInput.value = currentToken;
+                
+                resultDiv.textContent = `✅ Login successful!
+Token: ${currentToken.substring(0, 50)}...
+User: ${data.user.email}
+Token expires: ${new Date(Date.now() + (60 * 60 * 1000)).toLocaleString()}`;
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ Login failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        async function testAutoMatch() {
+            const resultDiv = document.getElementById('autoMatchResult');
+            const tokenInput = document.getElementById('tokenInput');
+            
+            if (!currentToken) {
+                resultDiv.textContent = '❌ Please login first to get a token';
+                resultDiv.className = 'result error';
+                return;
+            }
+            
+            resultDiv.textContent = '🔄 Testing auto-match...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const response = await fetch('/jobs/ai-matches/?auto_match=true', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers.get('content-type'));
+                
+                if (!response.ok) {
+                    // Try to parse JSON error response
+                    if (response.headers.get('content-type')?.includes('application/json')) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.matches) {
+                    let matchesInfo = '';
+                    data.matches.slice(0, 5).forEach((match, index) => {
+                        matchesInfo += `${index + 1}. ${match.job.title} - ${match.match_score}% match
+   Company: ${match.job.company || 'N/A'}
+   Location: ${match.job.location || 'N/A'}
+   
+`;
+                    });
+                    
+                    resultDiv.textContent = `✅ Auto-match successful!
+Found ${data.matches.length} job matches
+
+📊 Statistics:
+- Total jobs processed: ${data.stats.total_jobs}
+- Average match score: ${data.stats.avg_match.toFixed(1)}%
+- Top skills count: ${data.stats.top_skills}
+- New jobs today: ${data.stats.new_jobs}
+
+🎯 Top 5 Matches:
+${matchesInfo}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `⚠️ No matches found or unexpected response format:
+${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result warning';
+                }
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ Auto-match failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        async function testInvalidToken() {
+            const resultDiv = document.getElementById('errorResult');
+            
+            resultDiv.textContent = '🔄 Testing invalid token...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const response = await fetch('/jobs/ai-matches/?auto_match=true', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer invalid_token_here',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.status === 401) {
+                    const errorData = await response.json();
+                    resultDiv.textContent = `✅ Invalid token correctly handled:
+Status: ${response.status}
+Error: ${errorData.error}
+Response: ${JSON.stringify(errorData, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `❌ Expected 401 status for invalid token, got ${response.status}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ Test failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        async function testNoToken() {
+            const resultDiv = document.getElementById('errorResult');
+            
+            resultDiv.textContent = '🔄 Testing no token...';
+            resultDiv.className = 'result info';
+            
+            try {
+                const response = await fetch('/jobs/ai-matches/?auto_match=true', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.status === 401) {
+                    const errorData = await response.json();
+                    resultDiv.textContent = `✅ No token correctly handled:
+Status: ${response.status}
+Error: ${errorData.error}
+Response: ${JSON.stringify(errorData, null, 2)}`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `❌ Expected 401 status for no token, got ${response.status}`;
+                    resultDiv.className = 'result error';
+                }
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ Test failed: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        console.log('🧪 Auto-Match Test Page loaded');
+    </script>
+</body>
+</html>

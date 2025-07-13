@@ -1,0 +1,104 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}Super Simple Login Test{% endblock %}
+
+{% block content %}
+<div style="padding: 20px; max-width: 600px; margin: 0 auto;">
+    <h1>🔧 Super Simple Login Test</h1>
+    
+    <div style="margin: 20px 0;">
+        <button onclick="testLogin()" style="padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; cursor: pointer;">
+            Test Login (Direct Fetch)
+        </button>
+    </div>
+    
+    <div id="results" style="background: #f5f5f5; padding: 15px; margin: 20px 0; white-space: pre-wrap; font-family: monospace; max-height: 400px; overflow-y: auto;">
+        Click the button to test login...
+    </div>
+</div>
+
+<script>
+async function testLogin() {
+    const results = document.getElementById('results');
+    results.textContent = '🔄 Testing login...\n\n';
+    
+    try {
+        // Test 1: Direct fetch without any special headers
+        results.textContent += 'Test 1: Basic fetch request\n';
+        const response1 = await fetch('/api/auth/token/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: 'abdulmukhit@kbtu.kz',
+                password: 'password123'
+            })
+        });
+        
+        const data1 = await response1.json();
+        results.textContent += `Status: ${response1.status}\n`;
+        results.textContent += `Response: ${JSON.stringify(data1, null, 2)}\n\n`;
+        
+        if (response1.ok) {
+            results.textContent += '✅ SUCCESS: Login worked!\n';
+            results.textContent += `Access token: ${data1.access.substring(0, 50)}...\n`;
+            results.textContent += `User: ${data1.user.email}\n`;
+            return;
+        }
+        
+        // Test 2: With XMLHttpRequest headers
+        results.textContent += 'Test 2: With XMLHttpRequest headers\n';
+        const response2 = await fetch('/api/auth/token/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+                email: 'abdulmukhit@kbtu.kz',
+                password: 'password123'
+            })
+        });
+        
+        const data2 = await response2.json();
+        results.textContent += `Status: ${response2.status}\n`;
+        results.textContent += `Response: ${JSON.stringify(data2, null, 2)}\n\n`;
+        
+        if (response2.ok) {
+            results.textContent += '✅ SUCCESS: Login worked with XMLHttpRequest!\n';
+            return;
+        }
+        
+        // Test 3: With credentials
+        results.textContent += 'Test 3: With credentials: same-origin\n';
+        const response3 = await fetch('/api/auth/token/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                email: 'abdulmukhit@kbtu.kz',
+                password: 'password123'
+            })
+        });
+        
+        const data3 = await response3.json();
+        results.textContent += `Status: ${response3.status}\n`;
+        results.textContent += `Response: ${JSON.stringify(data3, null, 2)}\n\n`;
+        
+        if (response3.ok) {
+            results.textContent += '✅ SUCCESS: Login worked with credentials!\n';
+            return;
+        }
+        
+        results.textContent += '❌ All tests failed!\n';
+        
+    } catch (error) {
+        results.textContent += `❌ ERROR: ${error.message}\n`;
+        results.textContent += `Stack: ${error.stack}\n`;
+    }
+}
+</script>
+{% endblock %}

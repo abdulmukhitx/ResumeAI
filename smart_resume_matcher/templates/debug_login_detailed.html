@@ -1,0 +1,192 @@
+{% extends 'base_modern.html' %}
+
+{% block title %}Login Debug - Smart Resume Matcher{% endblock %}
+
+{% block content %}
+<div class="debug-container">
+    <h1>🔍 Login Debug Page</h1>
+    
+    <div class="debug-section">
+        <h2>Request Debug Info</h2>
+        <div id="request-info" class="debug-output"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Quick Login Test</h2>
+        <form id="debug-login-form">
+            {% csrf_token %}
+            <input type="email" id="email" value="abdulmukhit@kbtu.kz" placeholder="Email">
+            <input type="password" id="password" value="password123" placeholder="Password">
+            <button type="submit">Test Login</button>
+        </form>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Response Debug</h2>
+        <div id="response-info" class="debug-output"></div>
+    </div>
+</div>
+
+<style>
+.debug-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    font-family: monospace;
+}
+
+.debug-section {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.debug-output {
+    background: #f5f5f5;
+    padding: 10px;
+    border-radius: 3px;
+    white-space: pre-wrap;
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+input, button {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+button {
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0056b3;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('debug-login-form');
+    const requestInfo = document.getElementById('request-info');
+    const responseInfo = document.getElementById('response-info');
+    
+    // Log initial debug info
+    requestInfo.textContent = `
+Current URL: ${window.location.href}
+User Agent: ${navigator.userAgent}
+Cookies: ${document.cookie}
+CSRF Token: ${document.querySelector('[name=csrfmiddlewaretoken]')?.value || 'Not found'}
+    `;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        // Clear previous response
+        responseInfo.textContent = 'Sending request...';
+        
+        try {
+            // Prepare request data
+            const requestData = {
+                email: email,
+                password: password
+            };
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            
+            // Prepare headers
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            };
+            
+            if (csrfToken) {
+                headers['X-CSRFToken'] = csrfToken;
+            }
+            
+            // Log request details
+            const requestDetails = {
+                url: '/api/auth/token/',
+                method: 'POST',
+                headers: headers,
+                body: requestData
+            };
+            
+            requestInfo.textContent = `
+Request Details:
+${JSON.stringify(requestDetails, null, 2)}
+
+Request Body String:
+${JSON.stringify(requestData)}
+            `;
+            
+            // Make the request
+            const response = await fetch('/api/auth/token/', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(requestData)
+            });
+            
+            // Log response details
+            const responseHeaders = {};
+            response.headers.forEach((value, key) => {
+                responseHeaders[key] = value;
+            });
+            
+            const responseText = await response.text();
+            let responseData;
+            
+            try {
+                responseData = JSON.parse(responseText);
+            } catch {
+                responseData = responseText;
+            }
+            
+            const responseDetails = {
+                status: response.status,
+                statusText: response.statusText,
+                headers: responseHeaders,
+                body: responseData
+            };
+            
+            responseInfo.textContent = `
+Response Details:
+${JSON.stringify(responseDetails, null, 2)}
+
+Raw Response Text:
+${responseText}
+            `;
+            
+            // Test success
+            if (response.ok) {
+                responseInfo.textContent += '\n\n✅ SUCCESS: Login worked!';
+            } else {
+                responseInfo.textContent += '\n\n❌ FAILED: Login failed!';
+            }
+            
+        } catch (error) {
+            responseInfo.textContent = `
+❌ ERROR: ${error.message}
+
+Stack Trace:
+${error.stack}
+            `;
+        }
+    });
+});
+</script>
+{% endblock %}

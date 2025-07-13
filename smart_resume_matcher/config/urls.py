@@ -40,6 +40,14 @@ def auth_test_view(request):
 def token_debug_view(request):
     return render(request, 'token_debug.html')
 
+def test_auto_match_view(request):
+    """Test page for auto-match functionality"""
+    return render(request, 'test_auto_match.html')
+
+def login_test_view(request):
+    """Test page for login and auto-match functionality"""
+    return render(request, 'login_test.html')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     
@@ -50,6 +58,8 @@ urlpatterns = [
     path('register/', register_view, name='register'),
     # Simple login using the new working template
     path('login/', simple_login_view, name='login'),
+    # Fixed login for troubleshooting
+    path('login-fixed/', lambda request: render(request, 'login_fixed.html'), name='login_fixed'),
     # JWT login fallback
     path('jwt-login/', jwt_login_view, name='jwt_login'),
     # Session login fallback
@@ -99,6 +109,12 @@ urlpatterns = [
     
     # Token debug page
     path('token-debug/', token_debug_view, name='token_debug'),
+    
+    # Auto-match test page
+    path('test-auto-match/', test_auto_match_view, name='test_auto_match'),
+    
+    # Login test page
+    path('login-test/', login_test_view, name='login_test'),
 ]
 
 # Serve media files in development

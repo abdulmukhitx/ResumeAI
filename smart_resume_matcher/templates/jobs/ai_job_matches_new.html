@@ -648,14 +648,14 @@
                     <label for="searchKeyword">Keywords</label>
                     <input type="text" id="searchKeyword" name="search" class="form-control" 
                            placeholder="e.g., Python Developer, Data Scientist" 
-                           value="{{ search_query }}">
+                           value="{{ request.GET.search }}">
                 </div>
                 
                 <div class="form-group">
                     <label for="searchLocation">Location</label>
                     <input type="text" id="searchLocation" name="location" class="form-control" 
                            placeholder="e.g., Almaty, Remote" 
-                           value="{{ location }}">
+                           value="{{ request.GET.location }}">
                 </div>
                 
                 <div class="form-group">
@@ -752,11 +752,7 @@
                             </div>
                             <div class="job-posted">
                                 <i class="fas fa-clock me-1"></i>
-                                {% if match.job.published_at %}
-                                    {{ match.job.published_at|timesince }} ago
-                                {% else %}
-                                    Recently posted
-                                {% endif %}
+                                {{ match.job.published_at|timesince }} ago
                             </div>
                         </div>
                         
@@ -834,15 +830,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎯 Initializing AI Job Matches page...');
-    console.log('Page URL:', window.location.href);
-    
-    // Check if auto-match button exists
-    const autoMatchBtn = document.getElementById('autoMatchBtn');
-    console.log('Auto-match button check:', autoMatchBtn);
-    
-    // Check if search form exists
-    const searchForm = document.getElementById('searchForm');
-    console.log('Search form check:', searchForm);
     
     // Initialize page functionality
     initializeJobMatches();
@@ -850,20 +837,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeAnimations();
     
     // Auto-match functionality
-    if (autoMatchBtn) {
-        console.log('✅ Auto-match button found, adding event listener');
-        autoMatchBtn.addEventListener('click', startAutoMatch);
-    } else {
-        console.error('❌ Auto-match button not found!');
-    }
+    document.getElementById('autoMatchBtn').addEventListener('click', startAutoMatch);
     
     // Search form functionality
-    if (searchForm) {
-        console.log('✅ Search form found, adding event listener');
-        searchForm.addEventListener('submit', handleSearch);
-    } else {
-        console.error('❌ Search form not found!');
-    }
+    document.getElementById('searchForm').addEventListener('submit', handleSearch);
     
     // Initialize filter tags
     updateFilterTags();
@@ -916,18 +893,10 @@ function initializeAnimations() {
 
 function startAutoMatch() {
     console.log('🚀 Starting auto-match...');
-    console.log('Button clicked successfully!');
     
     const btn = document.getElementById('autoMatchBtn');
-    if (!btn) {
-        console.error('❌ Auto-match button not found in startAutoMatch!');
-        return;
-    }
-    
     const btnText = btn.querySelector('.btn-text');
     const btnIcon = btn.querySelector('i');
-    
-    console.log('Button elements:', { btn, btnText, btnIcon });
     
     // Show loading state
     btn.classList.add('loading');
@@ -935,63 +904,19 @@ function startAutoMatch() {
     btnIcon.className = 'spinner';
     btnText.textContent = 'Finding Jobs...';
     
-    // Get fresh token
-    const token = getAuthToken();
-    console.log('Token found:', !!token);
-    
-    if (!token) {
-        showToast('Please log in to use auto-match feature', 'warning');
-        resetAutoMatchButton(btn, btnText, btnIcon);
-        return;
-    }
-    
     // Make API call for auto-match
     fetch('/jobs/ai-matches/?auto_match=true', {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            'Authorization': `Bearer ${getAuthToken()}`,
+            'Content-Type': 'application/json'
         }
     })
-    .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers.get('content-type'));
-        
-        if (response.status === 401) {
-            throw new Error('Authentication failed. Please log in again.');
-        }
-        
-        if (response.status === 302) {
-            throw new Error('Redirected to login. Please refresh and log in again.');
-        }
-        
-        if (!response.ok) {
-            // Try to parse JSON error response
-            if (response.headers.get('content-type')?.includes('application/json')) {
-                return response.json().then(errorData => {
-                    if (errorData.error) {
-                        throw new Error(errorData.error);
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                });
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Expected JSON response but got: ' + contentType);
-        }
-        
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         console.log('✅ Auto-match completed:', data);
         
-        if (data.success && data.matches && data.matches.length > 0) {
+        if (data.success) {
             // Update the page with new matches
             updateJobsContainer(data.matches);
             updateStats(data.stats);
@@ -1002,30 +927,15 @@ function startAutoMatch() {
     })
     .catch(error => {
         console.error('❌ Auto-match failed:', error);
-        
-        if (error.message.includes('Authentication') || error.message.includes('login') || error.message.includes('401')) {
-            showToast('Authentication error. Please refresh the page and log in again.', 'error');
-            // Redirect to login after a short delay
-            setTimeout(() => {
-                window.location.href = '/login/';
-            }, 2000);
-        } else if (error.message.includes('Expected JSON')) {
-            showToast('Server error. Please try again.', 'error');
-        } else {
-            showToast('Failed to find new matches. Please try again.', 'error');
-        }
+        showToast('Failed to find new matches. Please try again.', 'error');
     })
     .finally(() => {
-        resetAutoMatchButton(btn, btnText, btnIcon);
+        // Reset button state
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        btnIcon.className = 'fas fa-rocket';
+        btnText.textContent = 'Find Perfect Jobs';
     });
-}
-
-function resetAutoMatchButton(btn, btnText, btnIcon) {
-    // Reset button state
-    btn.classList.remove('loading');
-    btn.disabled = false;
-    btnIcon.className = 'fas fa-rocket';
-    btnText.textContent = 'Find Perfect Jobs';
 }
 
 function handleSearch(e) {

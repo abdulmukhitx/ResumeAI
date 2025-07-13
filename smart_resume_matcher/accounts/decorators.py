@@ -57,7 +57,11 @@ def jwt_login_required(view_func):
             except (InvalidToken, TokenError) as e:
                 logger.debug(f"JWT authentication failed: {e}")
                 # If token is invalid, try to clear it from cookies and redirect
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+                          request.headers.get('Accept', '').startswith('application/json') or
+                          request.headers.get('Content-Type', '').startswith('application/json'))
+                
+                if is_ajax:
                     return JsonResponse({'error': 'Token expired', 'redirect': '/login/'}, status=401)
                 else:
                     response = redirect('/login/')
@@ -67,14 +71,22 @@ def jwt_login_required(view_func):
             except Exception as e:
                 logger.warning(f"Unexpected JWT auth error: {e}")
                 # Don't fail completely, just redirect to login
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+                          request.headers.get('Accept', '').startswith('application/json') or
+                          request.headers.get('Content-Type', '').startswith('application/json'))
+                
+                if is_ajax:
                     return JsonResponse({'error': 'Authentication error'}, status=401)
                 else:
                     return redirect('/login/')
         
         # No valid authentication found
-        # Check if this is an AJAX request
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Check if this is an AJAX request or API request
+        is_ajax = (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+                  request.headers.get('Accept', '').startswith('application/json') or
+                  request.headers.get('Content-Type', '').startswith('application/json'))
+        
+        if is_ajax:
             return JsonResponse({'error': 'Authentication required'}, status=401)
         
         # Regular request - redirect to login

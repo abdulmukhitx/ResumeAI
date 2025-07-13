@@ -17,6 +17,7 @@ from .serializers import CustomTokenObtainPairSerializer, UserProfileSerializer
 User = get_user_model()
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
     Custom JWT login view that returns enhanced user information

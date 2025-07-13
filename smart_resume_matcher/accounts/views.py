@@ -70,25 +70,97 @@ def logout_view(request):
 @jwt_login_required
 def profile_view(request):
     user = request.user
-    # Use a safer approach to check profile picture
+    
+    # Fix profile picture issues
     try:
         if user.profile_picture and hasattr(user.profile_picture, 'name'):
             if not os.path.exists(os.path.join(settings.MEDIA_ROOT, user.profile_picture.name)):
                 user.profile_picture = None
                 user.save(update_fields=['profile_picture'])
     except ValueError:
-        # If there's any issue with the profile picture, reset it
         user.profile_picture = None
         user.save(update_fields=['profile_picture'])
     
-    user_resume = Resume.objects.filter(user=user).order_by('-created_at').first()
+    # Get resumes with analysis data
+    resumes = Resume.objects.filter(user=user).order_by('-created_at')
+    user_resume = resumes.first()
+    
+    # Get job applications
     job_applications = JobApplication.objects.filter(user=user).order_by('-applied_date')
+    
+    # Get user profile data
+    profile_data = None
+    if hasattr(user, 'profile'):
+        profile_data = user.profile
+    
+    # Calculate statistics
+    total_resumes = resumes.count()
+    completed_resumes = resumes.filter(status='completed').count()
+    pending_resumes = resumes.filter(status='pending').count()
+    failed_resumes = resumes.filter(status='failed').count()
+    
+    # Get skills from latest resume
+    latest_skills = []
+    if user_resume and user_resume.extracted_skills:
+        latest_skills = user_resume.extracted_skills[:10]  # Top 10 skills
+    
+    # Get experience level from latest resume
+    experience_level = None
+    if user_resume and user_resume.experience_level:
+        experience_level = user_resume.experience_level
+    
+    # Get job titles from latest resume
+    job_titles = []
+    if user_resume and user_resume.job_titles:
+        job_titles = user_resume.job_titles[:5]  # Top 5 job titles
+    elif user_resume and user_resume.work_experience:
+        # Extract job titles from work experience if not directly available
+        job_titles = []
+        for exp in user_resume.work_experience[:5]:
+            if isinstance(exp, dict) and exp.get('position'):
+                job_titles.append(exp['position'])
+            elif isinstance(exp, str):
+                job_titles.append(exp)
+    
+    # Get education from latest resume
+    education = []
+    if user_resume and user_resume.education:
+        education = user_resume.education
+    
+    # Get work experience from latest resume
+    work_experience = []
+    if user_resume and user_resume.work_experience:
+        work_experience = user_resume.work_experience
+    
+    # Create analysis summary
+    analysis_summary = None
+    if user_resume and user_resume.analysis_summary:
+        analysis_summary = user_resume.analysis_summary
+    
+    # Calculate confidence score
+    confidence_score = None
+    if user_resume and user_resume.confidence_score:
+        confidence_score = user_resume.confidence_score
     
     context = {
         'user_resume': user_resume,
+        'resumes': resumes,
         'job_applications': job_applications,
+        'profile_data': profile_data,
+        'total_resumes': total_resumes,
+        'completed_resumes': completed_resumes,
+        'pending_resumes': pending_resumes,
+        'failed_resumes': failed_resumes,
+        'latest_skills': latest_skills,
+        'experience_level': experience_level,
+        'job_titles': job_titles,
+        'education': education,
+        'work_experience': work_experience,
+        'analysis_summary': analysis_summary,
+        'confidence_score': confidence_score,
+        'applications': job_applications,
     }
-    return render(request, 'accounts/profile.html', context)
+    return render(request, 'accounts/profile_enhanced.html', context)
 
 @jwt_login_required
 def edit_profile_view(request):
