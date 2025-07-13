@@ -1,10 +1,16 @@
 #!/bin/bash
 set -e
 
-echo "Starting Smart Resume Matcher (SQLite)..."
+echo "Starting Smart Resume Matcher (Railway)..."
 
-# Set Django settings
-export DJANGO_SETTINGS_MODULE=config.settings
+# Use Railway-specific settings if on Railway
+if [ -n "$RAILWAY_ENVIRONMENT" ]; then
+    export DJANGO_SETTINGS_MODULE=config.railway_settings
+    echo "Using Railway-specific settings"
+else
+    export DJANGO_SETTINGS_MODULE=config.settings
+    echo "Using default settings"
+fi
 
 # Run migrations
 echo "Running migrations..."
