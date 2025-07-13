@@ -1,0 +1,21 @@
+version: 2
+
+build:
+  commands:
+    - pip install --upgrade pip setuptools wheel
+    - pip install -r requirements.txt
+    - python manage.py collectstatic --noinput
+
+deploy:
+  startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+  healthcheckPath: /
+  healthcheckTimeout: 300
+  restartPolicyType: always
+
+variables:
+  - name: PYTHONUNBUFFERED
+    value: "1"
+  - name: DJANGO_SETTINGS_MODULE
+    value: "config.settings"
+  - name: PORT
+    value: "8000"
