@@ -1,0 +1,147 @@
+# Details
+
+Date : 2025-07-09 01:04:17
+
+Directory /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher
+
+Total : 132 files,  19216 codes, 2073 comments, 3524 blanks, all 24813 lines
+
+[Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
+
+## Files
+| filename | language | code | comment | blank | total |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+| [smart\_resume\_matcher/.github/workflows/deploy\_to\_render.yml](/smart_resume_matcher/.github/workflows/deploy_to_render.yml) | YAML | 28 | 0 | 6 | 34 |
+| [smart\_resume\_matcher/accounts/\_\_init\_\_.py](/smart_resume_matcher/accounts/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/accounts/admin.py](/smart_resume_matcher/accounts/admin.py) | Python | 42 | 2 | 8 | 52 |
+| [smart\_resume\_matcher/accounts/api\_views.py](/smart_resume_matcher/accounts/api_views.py) | Python | 131 | 22 | 20 | 173 |
+| [smart\_resume\_matcher/accounts/apps.py](/smart_resume_matcher/accounts/apps.py) | Python | 6 | 0 | 4 | 10 |
+| [smart\_resume\_matcher/accounts/decorators.py](/smart_resume_matcher/accounts/decorators.py) | Python | 53 | 21 | 15 | 89 |
+| [smart\_resume\_matcher/accounts/fields.py](/smart_resume_matcher/accounts/fields.py) | Python | 10 | 0 | 4 | 14 |
+| [smart\_resume\_matcher/accounts/forms.py](/smart_resume_matcher/accounts/forms.py) | Python | 66 | 1 | 7 | 74 |
+| [smart\_resume\_matcher/accounts/jwt\_compatible\_views.py](/smart_resume_matcher/accounts/jwt_compatible_views.py) | Python | 39 | 26 | 10 | 75 |
+| [smart\_resume\_matcher/accounts/jwt\_views.py](/smart_resume_matcher/accounts/jwt_views.py) | Python | 74 | 24 | 17 | 115 |
+| [smart\_resume\_matcher/accounts/management/\_\_init\_\_.py](/smart_resume_matcher/accounts/management/__init__.py) | Python | 0 | 1 | 1 | 2 |
+| [smart\_resume\_matcher/accounts/management/commands/\_\_init\_\_.py](/smart_resume_matcher/accounts/management/commands/__init__.py) | Python | 0 | 1 | 1 | 2 |
+| [smart\_resume\_matcher/accounts/management/commands/sync\_usernames.py](/smart_resume_matcher/accounts/management/commands/sync_usernames.py) | Python | 22 | 0 | 6 | 28 |
+| [smart\_resume\_matcher/accounts/middleware.py](/smart_resume_matcher/accounts/middleware.py) | Python | 43 | 23 | 16 | 82 |
+| [smart\_resume\_matcher/accounts/migrations/0001\_initial.py](/smart_resume_matcher/accounts/migrations/0001_initial.py) | Python | 71 | 1 | 7 | 79 |
+| [smart\_resume\_matcher/accounts/migrations/0002\_user\_phone\_user\_profile\_picture.py](/smart_resume_matcher/accounts/migrations/0002_user_phone_user_profile_picture.py) | Python | 17 | 1 | 6 | 24 |
+| [smart\_resume\_matcher/accounts/migrations/0003\_alter\_user\_profile\_picture.py](/smart_resume_matcher/accounts/migrations/0003_alter_user_profile_picture.py) | Python | 13 | 1 | 6 | 20 |
+| [smart\_resume\_matcher/accounts/migrations/\_\_init\_\_.py](/smart_resume_matcher/accounts/migrations/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/accounts/models.py](/smart_resume_matcher/accounts/models.py) | Python | 82 | 14 | 18 | 114 |
+| [smart\_resume\_matcher/accounts/profile\_api.py](/smart_resume_matcher/accounts/profile_api.py) | Python | 78 | 19 | 14 | 111 |
+| [smart\_resume\_matcher/accounts/serializers.py](/smart_resume_matcher/accounts/serializers.py) | Python | 109 | 24 | 19 | 152 |
+| [smart\_resume\_matcher/accounts/signals.py](/smart_resume_matcher/accounts/signals.py) | Python | 13 | 1 | 2 | 16 |
+| [smart\_resume\_matcher/accounts/tests.py](/smart_resume_matcher/accounts/tests.py) | Python | 1 | 1 | 2 | 4 |
+| [smart\_resume\_matcher/accounts/views.py](/smart_resume_matcher/accounts/views.py) | Python | 110 | 22 | 23 | 155 |
+| [smart\_resume\_matcher/config/\_\_init\_\_.py](/smart_resume_matcher/config/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/config/asgi.py](/smart_resume_matcher/config/asgi.py) | Python | 4 | 8 | 5 | 17 |
+| [smart\_resume\_matcher/config/celery.py](/smart_resume_matcher/config/celery.py) | Python | 12 | 6 | 7 | 25 |
+| [smart\_resume\_matcher/config/production\_settings.py](/smart_resume_matcher/config/production_settings.py) | Python | 27 | 5 | 6 | 38 |
+| [smart\_resume\_matcher/config/settings.py](/smart_resume_matcher/config/settings.py) | Python | 227 | 30 | 37 | 294 |
+| [smart\_resume\_matcher/config/urls.py](/smart_resume_matcher/config/urls.py) | Python | 61 | 19 | 12 | 92 |
+| [smart\_resume\_matcher/config/wsgi.py](/smart_resume_matcher/config/wsgi.py) | Python | 4 | 8 | 5 | 17 |
+| [smart\_resume\_matcher/core/\_\_init\_\_.py](/smart_resume_matcher/core/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/core/admin.py](/smart_resume_matcher/core/admin.py) | Python | 1 | 1 | 2 | 4 |
+| [smart\_resume\_matcher/core/apps.py](/smart_resume_matcher/core/apps.py) | Python | 4 | 0 | 3 | 7 |
+| [smart\_resume\_matcher/core/migrations/\_\_init\_\_.py](/smart_resume_matcher/core/migrations/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/core/models.py](/smart_resume_matcher/core/models.py) | Python | 1 | 1 | 2 | 4 |
+| [smart\_resume\_matcher/core/tests.py](/smart_resume_matcher/core/tests.py) | Python | 1 | 1 | 2 | 4 |
+| [smart\_resume\_matcher/core/views.py](/smart_resume_matcher/core/views.py) | Python | 43 | 7 | 11 | 61 |
+| [smart\_resume\_matcher/debug\_login\_view.py](/smart_resume_matcher/debug_login_view.py) | Python | 5 | 1 | 2 | 8 |
+| [smart\_resume\_matcher/jobs/\_\_init\_\_.py](/smart_resume_matcher/jobs/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/jobs/admin.py](/smart_resume_matcher/jobs/admin.py) | Python | 52 | 0 | 7 | 59 |
+| [smart\_resume\_matcher/jobs/api.py](/smart_resume_matcher/jobs/api.py) | Python | 48 | 17 | 14 | 79 |
+| [smart\_resume\_matcher/jobs/apps.py](/smart_resume_matcher/jobs/apps.py) | Python | 6 | 3 | 4 | 13 |
+| [smart\_resume\_matcher/jobs/job\_matcher.py](/smart_resume_matcher/jobs/job_matcher.py) | Python | 177 | 102 | 47 | 326 |
+| [smart\_resume\_matcher/jobs/job\_matcher\_backup.py](/smart_resume_matcher/jobs/job_matcher_backup.py) | Python | 170 | 95 | 44 | 309 |
+| [smart\_resume\_matcher/jobs/job\_matcher\_updated.py](/smart_resume_matcher/jobs/job_matcher_updated.py) | Python | 169 | 100 | 44 | 313 |
+| [smart\_resume\_matcher/jobs/migrations/0001\_initial.py](/smart_resume_matcher/jobs/migrations/0001_initial.py) | Python | 97 | 1 | 7 | 105 |
+| [smart\_resume\_matcher/jobs/migrations/0002\_alter\_jobmatch\_options\_and\_more.py](/smart_resume_matcher/jobs/migrations/0002_alter_jobmatch_options_and_more.py) | Python | 115 | 1 | 6 | 122 |
+| [smart\_resume\_matcher/jobs/migrations/0003\_alter\_job\_requirements\_alter\_job\_responsibilities.py](/smart_resume_matcher/jobs/migrations/0003_alter_job_requirements_alter_job_responsibilities.py) | Python | 17 | 1 | 6 | 24 |
+| [smart\_resume\_matcher/jobs/migrations/0004\_alter\_job\_hh\_url\_alter\_job\_published\_at.py](/smart_resume_matcher/jobs/migrations/0004_alter_job_hh_url_alter_job_published_at.py) | Python | 18 | 1 | 6 | 25 |
+| [smart\_resume\_matcher/jobs/migrations/\_\_init\_\_.py](/smart_resume_matcher/jobs/migrations/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/jobs/models.py](/smart_resume_matcher/jobs/models.py) | Python | 141 | 23 | 40 | 204 |
+| [smart\_resume\_matcher/jobs/services.py](/smart_resume_matcher/jobs/services.py) | Python | 169 | 32 | 40 | 241 |
+| [smart\_resume\_matcher/jobs/tasks.py](/smart_resume_matcher/jobs/tasks.py) | Python | 143 | 22 | 30 | 195 |
+| [smart\_resume\_matcher/jobs/templatetags/\_\_init\_\_.py](/smart_resume_matcher/jobs/templatetags/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/jobs/templatetags/job\_filters.py](/smart_resume_matcher/jobs/templatetags/job_filters.py) | Python | 63 | 32 | 21 | 116 |
+| [smart\_resume\_matcher/jobs/tests.py](/smart_resume_matcher/jobs/tests.py) | Python | 1 | 1 | 2 | 4 |
+| [smart\_resume\_matcher/jobs/urls.py](/smart_resume_matcher/jobs/urls.py) | Python | 11 | 1 | 3 | 15 |
+| [smart\_resume\_matcher/jobs/views.py](/smart_resume_matcher/jobs/views.py) | Python | 337 | 68 | 75 | 480 |
+| [smart\_resume\_matcher/manage.py](/smart_resume_matcher/manage.py) | Python | 15 | 3 | 5 | 23 |
+| [smart\_resume\_matcher/notifications/\_\_init\_\_.py](/smart_resume_matcher/notifications/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/notifications/admin.py](/smart_resume_matcher/notifications/admin.py) | Python | 2 | 3 | 1 | 6 |
+| [smart\_resume\_matcher/notifications/apps.py](/smart_resume_matcher/notifications/apps.py) | Python | 4 | 0 | 3 | 7 |
+| [smart\_resume\_matcher/notifications/migrations/0001\_initial.py](/smart_resume_matcher/notifications/migrations/0001_initial.py) | Python | 32 | 1 | 7 | 40 |
+| [smart\_resume\_matcher/notifications/migrations/\_\_init\_\_.py](/smart_resume_matcher/notifications/migrations/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/notifications/models.py](/smart_resume_matcher/notifications/models.py) | Python | 32 | 3 | 10 | 45 |
+| [smart\_resume\_matcher/notifications/tasks.py](/smart_resume_matcher/notifications/tasks.py) | Python | 127 | 19 | 33 | 179 |
+| [smart\_resume\_matcher/notifications/tests.py](/smart_resume_matcher/notifications/tests.py) | Python | 1 | 1 | 2 | 4 |
+| [smart\_resume\_matcher/notifications/views.py](/smart_resume_matcher/notifications/views.py) | Python | 1 | 1 | 2 | 4 |
+| [smart\_resume\_matcher/requirements.txt](/smart_resume_matcher/requirements.txt) | pip requirements | 47 | 12 | 12 | 71 |
+| [smart\_resume\_matcher/resumes/\_\_init\_\_.py](/smart_resume_matcher/resumes/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/resumes/admin.py](/smart_resume_matcher/resumes/admin.py) | Python | 29 | 1 | 3 | 33 |
+| [smart\_resume\_matcher/resumes/advanced\_analyzer.py](/smart_resume_matcher/resumes/advanced_analyzer.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/resumes/api.py](/smart_resume_matcher/resumes/api.py) | Python | 197 | 40 | 33 | 270 |
+| [smart\_resume\_matcher/resumes/apps.py](/smart_resume_matcher/resumes/apps.py) | Python | 6 | 1 | 4 | 11 |
+| [smart\_resume\_matcher/resumes/enhanced\_analyzer.py](/smart_resume_matcher/resumes/enhanced_analyzer.py) | Python | 244 | 198 | 50 | 492 |
+| [smart\_resume\_matcher/resumes/enhanced\_job\_matcher.py](/smart_resume_matcher/resumes/enhanced_job_matcher.py) | Python | 386 | 89 | 95 | 570 |
+| [smart\_resume\_matcher/resumes/forms.py](/smart_resume_matcher/resumes/forms.py) | Python | 9 | 0 | 2 | 11 |
+| [smart\_resume\_matcher/resumes/migrations/0001\_initial.py](/smart_resume_matcher/resumes/migrations/0001_initial.py) | Python | 41 | 1 | 7 | 49 |
+| [smart\_resume\_matcher/resumes/migrations/0002\_resume\_error\_message\_resume\_error\_type\_and\_more.py](/smart_resume_matcher/resumes/migrations/0002_resume_error_message_resume_error_type_and_more.py) | Python | 37 | 1 | 6 | 44 |
+| [smart\_resume\_matcher/resumes/migrations/\_\_init\_\_.py](/smart_resume_matcher/resumes/migrations/__init__.py) | Python | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/resumes/models.py](/smart_resume_matcher/resumes/models.py) | Python | 61 | 6 | 14 | 81 |
+| [smart\_resume\_matcher/resumes/tasks.py](/smart_resume_matcher/resumes/tasks.py) | Python | 55 | 8 | 16 | 79 |
+| [smart\_resume\_matcher/resumes/tests.py](/smart_resume_matcher/resumes/tests.py) | Python | 1 | 1 | 2 | 4 |
+| [smart\_resume\_matcher/resumes/universal\_skills.py](/smart_resume_matcher/resumes/universal_skills.py) | Python | 288 | 49 | 31 | 368 |
+| [smart\_resume\_matcher/resumes/utils.py](/smart_resume_matcher/resumes/utils.py) | Python | 734 | 127 | 59 | 920 |
+| [smart\_resume\_matcher/resumes/views.py](/smart_resume_matcher/resumes/views.py) | Python | 142 | 35 | 32 | 209 |
+| [smart\_resume\_matcher/static/css/modern-theme-fixed.css](/smart_resume_matcher/static/css/modern-theme-fixed.css) | PostCSS | 1,659 | 54 | 292 | 2,005 |
+| [smart\_resume\_matcher/static/css/modern-theme.css](/smart_resume_matcher/static/css/modern-theme.css) | PostCSS | 2,627 | 103 | 490 | 3,220 |
+| [smart\_resume\_matcher/static/css/style.css](/smart_resume_matcher/static/css/style.css) | PostCSS | 697 | 69 | 151 | 917 |
+| [smart\_resume\_matcher/static/js/job-description-formatter.js](/smart_resume_matcher/static/js/job-description-formatter.js) | JavaScript | 45 | 15 | 13 | 73 |
+| [smart\_resume\_matcher/static/js/jwt\_auth.js](/smart_resume_matcher/static/js/jwt_auth.js) | JavaScript | 312 | 115 | 72 | 499 |
+| [smart\_resume\_matcher/static/js/jwt\_auth\_clean.js](/smart_resume_matcher/static/js/jwt_auth_clean.js) | JavaScript | 288 | 45 | 60 | 393 |
+| [smart\_resume\_matcher/static/js/jwt\_auth\_simple.js](/smart_resume_matcher/static/js/jwt_auth_simple.js) | JavaScript | 140 | 53 | 35 | 228 |
+| [smart\_resume\_matcher/static/js/main.js](/smart_resume_matcher/static/js/main.js) | JavaScript | 286 | 69 | 68 | 423 |
+| [smart\_resume\_matcher/static/js/modern-layout.js](/smart_resume_matcher/static/js/modern-layout.js) | JavaScript | 399 | 51 | 72 | 522 |
+| [smart\_resume\_matcher/static/test\_login.html](/smart_resume_matcher/static/test_login.html) | HTML | 36 | 0 | 3 | 39 |
+| [smart\_resume\_matcher/templates/accounts/edit\_profile.html](/smart_resume_matcher/templates/accounts/edit_profile.html) | HTML | 81 | 1 | 10 | 92 |
+| [smart\_resume\_matcher/templates/accounts/jwt\_profile.html](/smart_resume_matcher/templates/accounts/jwt_profile.html) | HTML | 176 | 5 | 29 | 210 |
+| [smart\_resume\_matcher/templates/accounts/profile.html](/smart_resume_matcher/templates/accounts/profile.html) | HTML | 397 | 11 | 54 | 462 |
+| [smart\_resume\_matcher/templates/base.html](/smart_resume_matcher/templates/base.html) | HTML | 255 | 21 | 18 | 294 |
+| [smart\_resume\_matcher/templates/debug\_login.html](/smart_resume_matcher/templates/debug_login.html) | HTML | 134 | 0 | 24 | 158 |
+| [smart\_resume\_matcher/templates/debug\_login\_detailed.html](/smart_resume_matcher/templates/debug_login_detailed.html) | HTML | 138 | 0 | 34 | 172 |
+| [smart\_resume\_matcher/templates/home.html](/smart_resume_matcher/templates/home.html) | HTML | 463 | 10 | 56 | 529 |
+| [smart\_resume\_matcher/templates/jobs/ai\_job\_matches.html](/smart_resume_matcher/templates/jobs/ai_job_matches.html) | HTML | 278 | 4 | 23 | 305 |
+| [smart\_resume\_matcher/templates/jobs/job\_application.html](/smart_resume_matcher/templates/jobs/job_application.html) | HTML | 104 | 0 | 8 | 112 |
+| [smart\_resume\_matcher/templates/jobs/job\_detail.html](/smart_resume_matcher/templates/jobs/job_detail.html) | HTML | 267 | 8 | 22 | 297 |
+| [smart\_resume\_matcher/templates/jobs/job\_list.html](/smart_resume_matcher/templates/jobs/job_list.html) | HTML | 166 | 3 | 15 | 184 |
+| [smart\_resume\_matcher/templates/jobs/job\_search.html](/smart_resume_matcher/templates/jobs/job_search.html) | HTML | 116 | 0 | 12 | 128 |
+| [smart\_resume\_matcher/templates/minimal\_base.html](/smart_resume_matcher/templates/minimal_base.html) | HTML | 21 | 5 | 7 | 33 |
+| [smart\_resume\_matcher/templates/minimal\_login.html](/smart_resume_matcher/templates/minimal_login.html) | HTML | 69 | 0 | 14 | 83 |
+| [smart\_resume\_matcher/templates/registration/clean\_login.html](/smart_resume_matcher/templates/registration/clean_login.html) | HTML | 274 | 1 | 53 | 328 |
+| [smart\_resume\_matcher/templates/registration/complete\_standalone\_login.html](/smart_resume_matcher/templates/registration/complete_standalone_login.html) | HTML | 273 | 0 | 50 | 323 |
+| [smart\_resume\_matcher/templates/registration/jwt\_login.html](/smart_resume_matcher/templates/registration/jwt_login.html) | HTML | 404 | 1 | 75 | 480 |
+| [smart\_resume\_matcher/templates/registration/login.html](/smart_resume_matcher/templates/registration/login.html) | HTML | 48 | 0 | 7 | 55 |
+| [smart\_resume\_matcher/templates/registration/password\_reset\_complete.html](/smart_resume_matcher/templates/registration/password_reset_complete.html) | HTML | 29 | 0 | 5 | 34 |
+| [smart\_resume\_matcher/templates/registration/password\_reset\_confirm.html](/smart_resume_matcher/templates/registration/password_reset_confirm.html) | HTML | 54 | 0 | 7 | 61 |
+| [smart\_resume\_matcher/templates/registration/password\_reset\_done.html](/smart_resume_matcher/templates/registration/password_reset_done.html) | HTML | 30 | 0 | 5 | 35 |
+| [smart\_resume\_matcher/templates/registration/password\_reset\_email.html](/smart_resume_matcher/templates/registration/password_reset_email.html) | HTML | 9 | 0 | 6 | 15 |
+| [smart\_resume\_matcher/templates/registration/password\_reset\_form.html](/smart_resume_matcher/templates/registration/password_reset_form.html) | HTML | 34 | 0 | 6 | 40 |
+| [smart\_resume\_matcher/templates/registration/register.html](/smart_resume_matcher/templates/registration/register.html) | HTML | 257 | 0 | 41 | 298 |
+| [smart\_resume\_matcher/templates/registration/simple\_login.html](/smart_resume_matcher/templates/registration/simple_login.html) | HTML | 367 | 1 | 71 | 439 |
+| [smart\_resume\_matcher/templates/registration/standalone\_login.html](/smart_resume_matcher/templates/registration/standalone_login.html) | HTML | 284 | 6 | 56 | 346 |
+| [smart\_resume\_matcher/templates/registration/ultra\_clean\_login.html](/smart_resume_matcher/templates/registration/ultra_clean_login.html) | HTML | 244 | 0 | 49 | 293 |
+| [smart\_resume\_matcher/templates/registration/working\_login.html](/smart_resume_matcher/templates/registration/working_login.html) | HTML | 324 | 1 | 62 | 387 |
+| [smart\_resume\_matcher/templates/resumes/jwt\_upload.html](/smart_resume_matcher/templates/resumes/jwt_upload.html) | HTML | 466 | 9 | 78 | 553 |
+| [smart\_resume\_matcher/templates/resumes/jwt\_upload\_backup.html](/smart_resume_matcher/templates/resumes/jwt_upload_backup.html) | HTML | 0 | 0 | 1 | 1 |
+| [smart\_resume\_matcher/templates/resumes/jwt\_upload\_clean.html](/smart_resume_matcher/templates/resumes/jwt_upload_clean.html) | HTML | 560 | 13 | 102 | 675 |
+| [smart\_resume\_matcher/templates/resumes/upload.html](/smart_resume_matcher/templates/resumes/upload.html) | HTML | 275 | 6 | 26 | 307 |
+| [smart\_resume\_matcher/templates/styled\_working\_login.html](/smart_resume_matcher/templates/styled_working_login.html) | HTML | 344 | 1 | 65 | 410 |
+| [smart\_resume\_matcher/templates/super\_simple\_login.html](/smart_resume_matcher/templates/super_simple_login.html) | HTML | 124 | 0 | 26 | 150 |
+| [smart\_resume\_matcher/templates/test\_api.html](/smart_resume_matcher/templates/test_api.html) | HTML | 39 | 0 | 7 | 46 |
+
+[Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)

@@ -1,0 +1,196 @@
+Date : 2025-07-09 01:09:06
+Directory : /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher
+Total : 134 files,  19831 codes, 2076 comments, 3641 blanks, all 25548 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| HTML             |         38 |      7,755 |        110 |      1,244 |      9,109 |
+| Python           |         85 |      5,548 |      1,380 |      1,126 |      8,054 |
+| PostCSS          |          3 |      4,983 |        226 |        933 |      6,142 |
+| JavaScript       |          6 |      1,470 |        348 |        320 |      2,138 |
+| pip requirements |          1 |         47 |         12 |         12 |         71 |
+| YAML             |          1 |         28 |          0 |          6 |         34 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                               | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                  |        134 |     19,831 |      2,076 |      3,641 |     25,548 |
+| . (Files)                                                                                                                          |          3 |         67 |         16 |         19 |        102 |
+| .github                                                                                                                            |          1 |         28 |          0 |          6 |         34 |
+| .github/workflows                                                                                                                  |          1 |         28 |          0 |          6 |         34 |
+| accounts                                                                                                                           |         23 |        980 |        205 |        208 |      1,393 |
+| accounts (Files)                                                                                                                   |         16 |        857 |        200 |        180 |      1,237 |
+| accounts/management                                                                                                                |          3 |         22 |          2 |          8 |         32 |
+| accounts/management (Files)                                                                                                        |          1 |          0 |          1 |          1 |          2 |
+| accounts/management/commands                                                                                                       |          2 |         22 |          1 |          7 |         30 |
+| accounts/migrations                                                                                                                |          4 |        101 |          3 |         20 |        124 |
+| config                                                                                                                             |          7 |        335 |         76 |         73 |        484 |
+| core                                                                                                                               |          7 |         50 |         10 |         22 |         82 |
+| core (Files)                                                                                                                       |          6 |         50 |         10 |         21 |         81 |
+| core/migrations                                                                                                                    |          1 |          0 |          0 |          1 |          1 |
+| jobs                                                                                                                               |         20 |      1,734 |        500 |        399 |      2,633 |
+| jobs (Files)                                                                                                                       |         13 |      1,424 |        464 |        351 |      2,239 |
+| jobs/migrations                                                                                                                    |          5 |        247 |          4 |         26 |        277 |
+| jobs/templatetags                                                                                                                  |          2 |         63 |         32 |         22 |        117 |
+| notifications                                                                                                                      |          9 |        199 |         28 |         60 |        287 |
+| notifications (Files)                                                                                                              |          7 |        167 |         27 |         52 |        246 |
+| notifications/migrations                                                                                                           |          2 |         32 |          1 |          8 |         41 |
+| resumes                                                                                                                            |         17 |      2,230 |        557 |        357 |      3,144 |
+| resumes (Files)                                                                                                                    |         14 |      2,152 |        555 |        343 |      3,050 |
+| resumes/migrations                                                                                                                 |          3 |         78 |          2 |         14 |         94 |
+| static                                                                                                                             |         10 |      6,489 |        574 |      1,256 |      8,319 |
+| static (Files)                                                                                                                     |          1 |         36 |          0 |          3 |         39 |
+| static/css                                                                                                                         |          3 |      4,983 |        226 |        933 |      6,142 |
+| static/js                                                                                                                          |          6 |      1,470 |        348 |        320 |      2,138 |
+| templates                                                                                                                          |         37 |      7,719 |        110 |      1,241 |      9,070 |
+| templates (Files)                                                                                                                  |          9 |      1,587 |         37 |        251 |      1,875 |
+| templates/accounts                                                                                                                 |          3 |        654 |         17 |         93 |        764 |
+| templates/jobs                                                                                                                     |          5 |        931 |         15 |         80 |      1,026 |
+| templates/registration                                                                                                             |         16 |      3,246 |         13 |        610 |      3,869 |
+| templates/resumes                                                                                                                  |          4 |      1,301 |         28 |        207 |      1,536 |
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                                                                           | language         | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/.github/workflows/deploy_to_render.yml                                     | YAML             |         28 |          0 |          6 |         34 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/__init__.py                                                       | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/admin.py                                                          | Python           |         42 |          2 |          8 |         52 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/api_views.py                                                      | Python           |        131 |         22 |         20 |        173 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/apps.py                                                           | Python           |          6 |          0 |          4 |         10 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/decorators.py                                                     | Python           |         53 |         21 |         15 |         89 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/fields.py                                                         | Python           |         10 |          0 |          4 |         14 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/forms.py                                                          | Python           |         66 |          1 |          7 |         74 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/jwt_compatible_views.py                                           | Python           |         39 |         26 |         10 |         75 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/jwt_views.py                                                      | Python           |         74 |         24 |         17 |        115 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/management/__init__.py                                            | Python           |          0 |          1 |          1 |          2 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/management/commands/__init__.py                                   | Python           |          0 |          1 |          1 |          2 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/management/commands/sync_usernames.py                             | Python           |         22 |          0 |          6 |         28 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/middleware.py                                                     | Python           |         43 |         23 |         16 |         82 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/migrations/0001_initial.py                                        | Python           |         71 |          1 |          7 |         79 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/migrations/0002_user_phone_user_profile_picture.py                | Python           |         17 |          1 |          6 |         24 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/migrations/0003_alter_user_profile_picture.py                     | Python           |         13 |          1 |          6 |         20 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/migrations/__init__.py                                            | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/models.py                                                         | Python           |         82 |         14 |         18 |        114 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/profile_api.py                                                    | Python           |         78 |         19 |         14 |        111 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/serializers.py                                                    | Python           |        109 |         24 |         19 |        152 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/signals.py                                                        | Python           |         13 |          1 |          2 |         16 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/tests.py                                                          | Python           |          1 |          1 |          2 |          4 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/accounts/views.py                                                          | Python           |        110 |         22 |         23 |        155 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/config/__init__.py                                                         | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/config/asgi.py                                                             | Python           |          4 |          8 |          5 |         17 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/config/celery.py                                                           | Python           |         12 |          6 |          7 |         25 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/config/production_settings.py                                              | Python           |         27 |          5 |          6 |         38 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/config/settings.py                                                         | Python           |        227 |         30 |         37 |        294 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/config/urls.py                                                             | Python           |         61 |         19 |         12 |         92 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/config/wsgi.py                                                             | Python           |          4 |          8 |          5 |         17 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/core/__init__.py                                                           | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/core/admin.py                                                              | Python           |          1 |          1 |          2 |          4 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/core/apps.py                                                               | Python           |          4 |          0 |          3 |          7 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/core/migrations/__init__.py                                                | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/core/models.py                                                             | Python           |          1 |          1 |          2 |          4 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/core/tests.py                                                              | Python           |          1 |          1 |          2 |          4 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/core/views.py                                                              | Python           |         43 |          7 |         11 |         61 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/debug_login_view.py                                                        | Python           |          5 |          1 |          2 |          8 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/__init__.py                                                           | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/admin.py                                                              | Python           |         52 |          0 |          7 |         59 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/api.py                                                                | Python           |         48 |         17 |         14 |         79 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/apps.py                                                               | Python           |          6 |          3 |          4 |         13 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/job_matcher.py                                                        | Python           |        177 |        102 |         47 |        326 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/job_matcher_backup.py                                                 | Python           |        170 |         95 |         44 |        309 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/job_matcher_updated.py                                                | Python           |        169 |        100 |         44 |        313 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/migrations/0001_initial.py                                            | Python           |         97 |          1 |          7 |        105 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/migrations/0002_alter_jobmatch_options_and_more.py                    | Python           |        115 |          1 |          6 |        122 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/migrations/0003_alter_job_requirements_alter_job_responsibilities.py  | Python           |         17 |          1 |          6 |         24 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/migrations/0004_alter_job_hh_url_alter_job_published_at.py            | Python           |         18 |          1 |          6 |         25 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/migrations/__init__.py                                                | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/models.py                                                             | Python           |        141 |         23 |         40 |        204 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/services.py                                                           | Python           |        169 |         32 |         40 |        241 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/tasks.py                                                              | Python           |        143 |         22 |         30 |        195 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/templatetags/__init__.py                                              | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/templatetags/job_filters.py                                           | Python           |         63 |         32 |         21 |        116 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/tests.py                                                              | Python           |          1 |          1 |          2 |          4 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/urls.py                                                               | Python           |         11 |          1 |          3 |         15 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/jobs/views.py                                                              | Python           |        337 |         68 |         75 |        480 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/manage.py                                                                  | Python           |         15 |          3 |          5 |         23 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/__init__.py                                                  | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/admin.py                                                     | Python           |          2 |          3 |          1 |          6 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/apps.py                                                      | Python           |          4 |          0 |          3 |          7 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/migrations/0001_initial.py                                   | Python           |         32 |          1 |          7 |         40 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/migrations/__init__.py                                       | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/models.py                                                    | Python           |         32 |          3 |         10 |         45 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/tasks.py                                                     | Python           |        127 |         19 |         33 |        179 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/tests.py                                                     | Python           |          1 |          1 |          2 |          4 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/notifications/views.py                                                     | Python           |          1 |          1 |          2 |          4 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/requirements.txt                                                           | pip requirements |         47 |         12 |         12 |         71 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/__init__.py                                                        | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/admin.py                                                           | Python           |         29 |          1 |          3 |         33 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/advanced_analyzer.py                                               | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/api.py                                                             | Python           |        197 |         40 |         33 |        270 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/apps.py                                                            | Python           |          6 |          1 |          4 |         11 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/enhanced_analyzer.py                                               | Python           |        244 |        198 |         50 |        492 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/enhanced_job_matcher.py                                            | Python           |        386 |         89 |         95 |        570 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/forms.py                                                           | Python           |          9 |          0 |          2 |         11 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/migrations/0001_initial.py                                         | Python           |         41 |          1 |          7 |         49 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/migrations/0002_resume_error_message_resume_error_type_and_more.py | Python           |         37 |          1 |          6 |         44 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/migrations/__init__.py                                             | Python           |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/models.py                                                          | Python           |         61 |          6 |         14 |         81 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/tasks.py                                                           | Python           |         55 |          8 |         16 |         79 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/tests.py                                                           | Python           |          1 |          1 |          2 |          4 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/universal_skills.py                                                | Python           |        288 |         49 |         31 |        368 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/utils.py                                                           | Python           |        734 |        127 |         59 |        920 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/resumes/views.py                                                           | Python           |        142 |         35 |         32 |        209 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/css/modern-theme-fixed.css                                          | PostCSS          |      1,659 |         54 |        292 |      2,005 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/css/modern-theme.css                                                | PostCSS          |      2,627 |        103 |        490 |      3,220 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/css/style.css                                                       | PostCSS          |        697 |         69 |        151 |        917 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/js/job-description-formatter.js                                     | JavaScript       |         45 |         15 |         13 |         73 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/js/jwt_auth.js                                                      | JavaScript       |        312 |        115 |         72 |        499 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/js/jwt_auth_clean.js                                                | JavaScript       |        288 |         45 |         60 |        393 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/js/jwt_auth_simple.js                                               | JavaScript       |        140 |         53 |         35 |        228 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/js/main.js                                                          | JavaScript       |        286 |         69 |         68 |        423 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/js/modern-layout.js                                                 | JavaScript       |        399 |         51 |         72 |        522 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/static/test_login.html                                                     | HTML             |         36 |          0 |          3 |         39 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/accounts/edit_profile.html                                       | HTML             |         81 |          1 |         10 |         92 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/accounts/jwt_profile.html                                        | HTML             |        176 |          5 |         29 |        210 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/accounts/profile.html                                            | HTML             |        397 |         11 |         54 |        462 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/base.html                                                        | HTML             |        255 |         21 |         18 |        294 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/debug_login.html                                                 | HTML             |        134 |          0 |         24 |        158 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/debug_login_detailed.html                                        | HTML             |        138 |          0 |         34 |        172 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/home.html                                                        | HTML             |        463 |         10 |         56 |        529 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/jobs/ai_job_matches.html                                         | HTML             |        278 |          4 |         23 |        305 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/jobs/job_application.html                                        | HTML             |        104 |          0 |          8 |        112 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/jobs/job_detail.html                                             | HTML             |        267 |          8 |         22 |        297 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/jobs/job_list.html                                               | HTML             |        166 |          3 |         15 |        184 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/jobs/job_search.html                                             | HTML             |        116 |          0 |         12 |        128 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/minimal_base.html                                                | HTML             |         21 |          5 |          7 |         33 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/minimal_login.html                                               | HTML             |         69 |          0 |         14 |         83 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/clean_login.html                                    | HTML             |        274 |          1 |         53 |        328 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/complete_standalone_login.html                      | HTML             |        273 |          0 |         50 |        323 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/fixed_register.html                                 | HTML             |        296 |          2 |         55 |        353 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/fixed_styled_login.html                             | HTML             |        319 |          1 |         62 |        382 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/jwt_login.html                                      | HTML             |        404 |          1 |         75 |        480 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/login.html                                          | HTML             |         48 |          0 |          7 |         55 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/password_reset_complete.html                        | HTML             |         29 |          0 |          5 |         34 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/password_reset_confirm.html                         | HTML             |         54 |          0 |          7 |         61 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/password_reset_done.html                            | HTML             |         30 |          0 |          5 |         35 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/password_reset_email.html                           | HTML             |          9 |          0 |          6 |         15 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/password_reset_form.html                            | HTML             |         34 |          0 |          6 |         40 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/register.html                                       | HTML             |        257 |          0 |         41 |        298 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/simple_login.html                                   | HTML             |        367 |          1 |         71 |        439 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/standalone_login.html                               | HTML             |        284 |          6 |         56 |        346 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/ultra_clean_login.html                              | HTML             |        244 |          0 |         49 |        293 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/registration/working_login.html                                  | HTML             |        324 |          1 |         62 |        387 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/resumes/jwt_upload.html                                          | HTML             |        466 |          9 |         78 |        553 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/resumes/jwt_upload_backup.html                                   | HTML             |          0 |          0 |          1 |          1 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/resumes/jwt_upload_clean.html                                    | HTML             |        560 |         13 |        102 |        675 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/resumes/upload.html                                              | HTML             |        275 |          6 |         26 |        307 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/styled_working_login.html                                        | HTML             |        344 |          1 |         65 |        410 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/super_simple_login.html                                          | HTML             |        124 |          0 |         26 |        150 |
+| /home/abdulmukhit/Desktop/ResumeAI/smart_resume_matcher/templates/test_api.html                                                    | HTML             |         39 |          0 |          7 |         46 |
+| Total                                                                                                                              |                  |     19,831 |      2,076 |      3,641 |     25,548 |
++------------------------------------------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
