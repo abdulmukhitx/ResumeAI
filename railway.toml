@@ -1,0 +1,12 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+
+[env]
+DEBUG = "False"
+DJANGO_SETTINGS_MODULE = "config.settings"
+RAILWAY_ENVIRONMENT = "production"

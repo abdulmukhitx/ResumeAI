@@ -8,15 +8,23 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security
-SECRET_KEY = config('SECRET_KEY', default='railway-dev-key-change-in-production')
-DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-production')
+DEBUG = config('DEBUG', default=True, cast=bool)  # Default to True for easier debugging
 
 # Railway environment detection
 RAILWAY_ENVIRONMENT = config('RAILWAY_ENVIRONMENT', default=None)
 IS_RAILWAY = RAILWAY_ENVIRONMENT is not None
 
+# Force DEBUG=False in production
+if IS_RAILWAY:
+    DEBUG = False
+
 # Allowed hosts configuration
-ALLOWED_HOSTS = ['*']  # Railway handles the routing
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+else:
+    # Add your Railway domain here
+    ALLOWED_HOSTS = ['*', '.railway.app', '.up.railway.app']
 
 # Application definition
 DJANGO_APPS = [
@@ -108,10 +116,16 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Additional locations of static files
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Static files storage for production - simplified for Railway
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media files
@@ -150,7 +164,7 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
 }
 
-# CORS settings
+# CORS settings - more permissive for deployment
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -160,6 +174,17 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True  # Allow all origins for Railway
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = False  # Railway handles SSL termination
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
 
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
